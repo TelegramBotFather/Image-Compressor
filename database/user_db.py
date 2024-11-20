@@ -133,3 +133,34 @@ async def update_user_stats(
         )
     except Exception as e:
         logger.error(f"Error updating stats for user {user_id}: {str(e)}")
+
+async def update_user_settings(user_id: int, settings_update: Dict[str, Any]) -> bool:
+    """
+    Update user settings in the database.
+
+    Args:
+        user_id (int): The Telegram user ID
+        settings_update (Dict[str, Any]): Dictionary containing settings to update
+
+    Returns:
+        bool: True if successful, False otherwise
+    """
+    try:
+        result = await db.settings.update_one(
+            {"user_id": user_id},
+            {
+                "$set": {
+                    **settings_update,
+                    "updated_at": datetime.utcnow()
+                },
+                "$setOnInsert": {
+                    "created_at": datetime.utcnow()
+                }
+            },
+            upsert=True
+        )
+        logger.info(f"Settings updated for user {user_id}")
+        return bool(result.modified_count or result.upserted_id)
+    except Exception as e:
+        logger.error(f"Error updating settings for user {user_id}: {str(e)}")
+        return False

@@ -1,9 +1,9 @@
 from .start import start_command
 from .admin_dashboard import admin_dashboard
-from .stats import stats_command as usage_stats
+from .stats import usage_stats
 from .convert import convert_command
 from .broadcast import broadcast_command
-from .user_management import ban_user, unban_user, banned_users_list
+from .ban import ban_user, unban_user, banned_users_list
 from .settings import settings_command
 from .support import support_command
 

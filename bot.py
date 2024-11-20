@@ -104,16 +104,16 @@ async def start_bot():
         raise e
 
 # Register command handlers
-app.add_handler(filters.command("start"), start_command)
-app.add_handler(filters.command("help"), support_command)
-app.add_handler(filters.command("settings"), settings_command)
-app.add_handler(filters.command("convert"), convert_command)
-app.add_handler(filters.command("broadcast"), broadcast_command)
-app.add_handler(filters.command("ban"), ban_user)
-app.add_handler(filters.command("unban"), unban_user)
-app.add_handler(filters.command("banned_users"), banned_users_list)
-app.add_handler(filters.command("admin"), admin_dashboard)
-app.add_handler(filters.command("stats"), usage_stats)
+app.add_handler(MessageHandler(start_command, filters.command("start")))
+app.add_handler(MessageHandler(support_command, filters.command("help")))
+app.add_handler(MessageHandler(settings_command, filters.command("settings")))
+app.add_handler(MessageHandler(convert_command, filters.command("convert")))
+app.add_handler(MessageHandler(broadcast_command, filters.command("broadcast")))
+app.add_handler(MessageHandler(ban_user, filters.command("ban")))
+app.add_handler(MessageHandler(unban_user, filters.command("unban")))
+app.add_handler(MessageHandler(banned_users_list, filters.command("banned_users")))
+app.add_handler(MessageHandler(admin_dashboard, filters.command("admin")))
+app.add_handler(MessageHandler(usage_stats, filters.command("stats")))
 
 # Register message handlers
 app.add_handler(MessageHandler(file_handler.handle, filters.photo | filters.document))

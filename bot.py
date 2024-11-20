@@ -82,6 +82,22 @@ async def start_bot():
         # Start the bot
         await app.start()
         
+        # Register command handlers
+        app.add_handler(MessageHandler(start_command, filters.command("start")))
+        app.add_handler(MessageHandler(support_command, filters.command("help")))
+        app.add_handler(MessageHandler(settings_command, filters.command("settings")))
+        app.add_handler(MessageHandler(convert_command, filters.command("convert")))
+        app.add_handler(MessageHandler(broadcast_command, filters.command("broadcast")))
+        app.add_handler(MessageHandler(ban_user, filters.command("ban")))
+        app.add_handler(MessageHandler(unban_user, filters.command("unban")))
+        app.add_handler(MessageHandler(banned_users_list, filters.command("banned_users")))
+        app.add_handler(MessageHandler(admin_dashboard, filters.command("admin")))
+        app.add_handler(MessageHandler(usage_stats, filters.command("stats")))
+
+        # Register message handlers
+        app.add_handler(MessageHandler(file_handler.handle, filters.photo | filters.document))
+        app.add_handler(CallbackQueryHandler(button_handler.handle))
+        
         # Verify log channel
         log_channel_id = os.getenv("LOG_CHANNEL_ID")
         if not log_channel_id.startswith("-100"):
@@ -100,27 +116,11 @@ async def start_bot():
         logger.info("Bot started successfully!")
         
     except Exception as e:
-        logger.error(f"Failed to start bot: {str(e)}")
-        raise e
-
-# Register command handlers
-app.add_handler(MessageHandler(start_command, filters.command("start")))
-app.add_handler(MessageHandler(support_command, filters.command("help")))
-app.add_handler(MessageHandler(settings_command, filters.command("settings")))
-app.add_handler(MessageHandler(convert_command, filters.command("convert")))
-app.add_handler(MessageHandler(broadcast_command, filters.command("broadcast")))
-app.add_handler(MessageHandler(ban_user, filters.command("ban")))
-app.add_handler(MessageHandler(unban_user, filters.command("unban")))
-app.add_handler(MessageHandler(banned_users_list, filters.command("banned_users")))
-app.add_handler(MessageHandler(admin_dashboard, filters.command("admin")))
-app.add_handler(MessageHandler(usage_stats, filters.command("stats")))
-
-# Register message handlers
-app.add_handler(MessageHandler(file_handler.handle, filters.photo | filters.document))
-app.add_handler(CallbackQueryHandler(button_handler.handle))
+        logger.error(f"Error starting bot: {str(e)}")
+        raise
 
 if __name__ == "__main__":
     try:
-        app.run(start_bot)
+        app.run(start_bot())
     except Exception as e:
         logger.error(f"Bot crashed: {str(e)}")

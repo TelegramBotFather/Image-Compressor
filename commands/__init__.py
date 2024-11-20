@@ -3,7 +3,7 @@ from .admin_dashboard import admin_dashboard
 from .stats import usage_stats
 from .convert import convert_command
 from .broadcast import broadcast_command
-from .ban import ban_user, unban_user, banned_users_list
+from .user_management import ban_user, unban_user, banned_users_list
 from .settings import settings_command
 from .support import support_command
 

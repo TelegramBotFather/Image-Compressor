@@ -115,6 +115,9 @@ if __name__ == "__main__":
         file_handler = FileHandler(app)
         button_handler = ButtonHandler(app)
         
+        # Add handlers to the app
+        app.add_handler(CallbackQueryHandler(button_handler.handle))
+        
         # Initialize scheduler
         scheduler = AsyncIOScheduler()
         scheduler.add_job(cleanup_old_data, 'interval', hours=1)
@@ -123,4 +126,4 @@ if __name__ == "__main__":
         app.run(start_bot())
         
     except Exception as e:
-        logger.error(f"Bot crashed: {str(e)}")
+        logger.error(f"Error starting bot: {str(e)}")

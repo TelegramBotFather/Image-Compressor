@@ -8,15 +8,16 @@ from database.mongodb import db
 import os
 from pyrogram.types import Message
 from components.keyboards import Keyboards
+import logging
 
-logger = APILogger(__name__)
+logger = logging.getLogger(__name__)
 
 class APIHandler:
     """Handler for interacting with the TinyPNG API."""
 
     def __init__(self):
-        self.default_key = TINIFY_API_KEY
-        self._api_cache = {}
+        self.api_logger = APILogger()
+        self.default_api_key = os.getenv("TINIFY_API_KEY")
 
     async def get_api_key(self, user_id: int) -> str:
         """
@@ -37,10 +38,10 @@ class APIHandler:
                 self._api_cache[user_id] = user_key
                 return user_key
             
-            return self.default_key
+            return self.default_api_key
         except Exception as e:
             logger.error(f"Error getting API key: {str(e)}")
-            return self.default_key
+            return self.default_api_key
 
     async def compress_image(
         self,
@@ -82,6 +83,14 @@ class APIHandler:
             original_size = os.path.getsize(file_path)
             compressed_size = os.path.getsize(compressed_path)
             await update_user_stats(user_id, original_size, compressed_size)
+            
+            # Log successful API call
+            await self.api_logger.log_api_call(
+                user_id=user_id,
+                api_key=api_key,
+                success=True,
+                response={"compressed_path": compressed_path}
+            )
             
             return True, compressed_path, None
             

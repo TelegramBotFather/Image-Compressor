@@ -5,8 +5,11 @@ import logging
 logger = logging.getLogger(__name__)
 
 class APILogger:
-    @staticmethod
+    def __init__(self):
+        self.logger = logging.getLogger(__name__)
+
     async def log_api_call(
+        self,
         user_id: int,
         api_key: str,
         success: bool,
@@ -23,4 +26,4 @@ class APILogger:
             }
             await save_api_log(log_data)
         except Exception as e:
-            logger.error(f"Error logging API call: {str(e)}")
+            self.logger.error(f"Error logging API call: {str(e)}")

@@ -18,6 +18,7 @@ class APIHandler:
     def __init__(self):
         self.api_logger = APILogger()
         self.default_api_key = os.getenv("TINIFY_API_KEY")
+        self._api_cache = {}
 
     async def get_api_key(self, user_id: int) -> str:
         """

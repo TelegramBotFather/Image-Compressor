@@ -1,32 +1,25 @@
 from pyrogram import Client
 from pyrogram.types import Message
-from api_management.usage_tracker import UsageTracker
+from pyrogram.enums import ParseMode
+from database.api_db import get_user_api_stats
+from components.messages import Messages
+from utils.decorators import rate_limit
 import logging
 
 logger = logging.getLogger(__name__)
 
-async def stats_command(client: Client, message: Message) -> None:
+@rate_limit
+async def usage_stats(client: Client, message: Message) -> None:
+    """Handle the /stats command."""
     try:
         user_id = message.from_user.id
-        tracker = UsageTracker()
-        stats = await tracker.get_user_stats(user_id)
-
-        stats_text = (
-            "📊 <b>Your Usage Statistics</b>\n\n"
-            f"Today's Usage:\n"
-            f"├ Files: {stats['today_files']}\n"
-            f"└ Data: {stats['today_size']/1024/1024:.2f} MB\n\n"
-            f"Total Usage:\n"
-            f"├ Files: {stats['total_files']}\n"
-            f"└ Data: {stats['total_size']/1024/1024:.2f} MB\n\n"
-            f"Last Used: {stats['last_used'].strftime('%Y-%m-%d %H:%M:%S')}"
-        )
-
+        stats = await get_user_api_stats(user_id)
+        
         await message.reply_text(
-            stats_text,
-            parse_mode="html"
+            Messages.get_stats(stats),
+            parse_mode=ParseMode.HTML
         )
-
+        
     except Exception as e:
         logger.error(f"Error in stats command: {str(e)}")
         await message.reply_text("❌ An error occurred. Please try again.")

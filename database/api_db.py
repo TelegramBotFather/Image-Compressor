@@ -8,57 +8,40 @@ logger = logging.getLogger(__name__)
 async def get_user_api_stats(user_id: int) -> Dict[str, Any]:
     """Get user's API usage statistics."""
     try:
-        # Get today's date at midnight for accurate daily stats
-        today = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+        today = datetime.utcnow().date()
         
-        # Query for user's stats
-        stats = await db.api_stats.find_one({"user_id": user_id})
+        # Get today's stats
+        today_stats = await db.api_stats.find_one({
+            "user_id": user_id,
+            "date": today.isoformat()
+        }) or {"files": 0, "size": 0}
         
-        if not stats:
-            return {
-                "total_calls": 0,
-                "total_size": 0,
-                "today_calls": 0,
-                "today_size": 0,
-                "last_used": datetime.now()
-            }
-            
-        # Calculate today's usage
-        today_stats = await db.api_logs.aggregate([
-            {
-                "$match": {
-                    "user_id": user_id,
-                    "timestamp": {"$gte": today}
-                }
-            },
-            {
-                "$group": {
-                    "_id": None,
-                    "calls": {"$sum": 1},
-                    "size": {"$sum": "$size"}
-                }
-            }
-        ]).to_list(1)
-
-        today_calls = today_stats[0]["calls"] if today_stats else 0
-        today_size = today_stats[0]["size"] if today_stats else 0
-
+        # Get total stats
+        pipeline = [
+            {"$match": {"user_id": user_id}},
+            {"$group": {
+                "_id": None,
+                "total_files": {"$sum": "$files"},
+                "total_size": {"$sum": "$size"}
+            }}
+        ]
+        total_stats = await db.api_stats.aggregate(pipeline).to_list(1)
+        total_stats = total_stats[0] if total_stats else {"total_files": 0, "total_size": 0}
+        
         return {
-            "total_calls": stats.get("total_calls", 0),
-            "total_size": stats.get("total_size", 0),
-            "today_calls": today_calls,
-            "today_size": today_size,
-            "last_used": stats.get("last_used", datetime.now())
+            "today_files": today_stats["files"],
+            "today_size": today_stats["size"],
+            "total_files": total_stats["total_files"],
+            "total_size": total_stats["total_size"]
         }
         
     except Exception as e:
         logger.error(f"Error getting API stats for user {user_id}: {str(e)}")
         return {
-            "total_calls": 0,
-            "total_size": 0,
-            "today_calls": 0,
+            "today_files": 0,
             "today_size": 0,
-            "last_used": datetime.now()
+            "total_files": 0,
+            "total_size": 0
         }
 
 async def save_api_key(user_id: int, api_key: str) -> bool:

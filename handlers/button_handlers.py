@@ -1,9 +1,11 @@
 from pyrogram import Client
 from pyrogram.types import CallbackQuery
+from pyrogram.enums import ParseMode
 from components.messages import Messages
 from components.keyboards import Keyboards
 from api_management.api_handler import APIHandler
 from database.user_db import get_user_settings, update_user_settings
+from config import ERROR_MESSAGES
 import logging
 
 logger = logging.getLogger(__name__)
@@ -12,6 +14,32 @@ class ButtonHandler:
     def __init__(self, client: Client):
         self.client = client
         self.api_handler = APIHandler()
+
+    async def _handle_settings(self, callback_query: CallbackQuery) -> None:
+        """Handle settings menu callbacks."""
+        try:
+            user_id = callback_query.from_user.id
+            settings = await get_user_settings(user_id)
+            
+            settings_text = (
+                "⚙️ <b>Bot Settings</b>\n\n"
+                "Configure your preferences:\n\n"
+                "🔑 <b>API Settings</b>\n"
+                f"├ Custom API: {'✅ Enabled' if settings.get('custom_api_key') else '❌ Disabled'}\n"
+                f"└ Default Format: {settings.get('default_format', 'JPEG').upper()}\n\n"
+                "🔔 <b>Notifications</b>\n"
+                f"└ Status: {'✅ Enabled' if settings.get('notifications_enabled') else '❌ Disabled'}"
+            )
+            
+            await callback_query.message.edit_text(
+                settings_text,
+                reply_markup=Keyboards.settings_menu(bool(settings.get('custom_api_key'))),
+                parse_mode=ParseMode.HTML
+            )
+            
+        except Exception as e:
+            logger.error(f"Error in settings handler: {str(e)}")
+            raise
 
     async def handle(self, client: Client, callback_query: CallbackQuery) -> None:
         """Handle all callback queries."""
@@ -23,13 +51,15 @@ class ButtonHandler:
             if data == "start":
                 await message.edit_text(
                     Messages.WELCOME,
-                    reply_markup=Keyboards.main_menu()
+                    reply_markup=Keyboards.main_menu(),
+                    parse_mode=ParseMode.HTML
                 )
                 
             elif data == "help":
                 await message.edit_text(
                     Messages.HELP,
-                    reply_markup=Keyboards.help_menu()
+                    reply_markup=Keyboards.help_menu(),
+                    parse_mode=ParseMode.HTML
                 )
                 
             elif data.startswith("settings"):
@@ -49,22 +79,6 @@ class ButtonHandler:
                 ERROR_MESSAGES["general_error"],
                 show_alert=True
             )
-
-    async def _handle_settings(self, callback_query: CallbackQuery) -> None:
-        """Handle settings-related callbacks."""
-        try:
-            user_id = callback_query.from_user.id
-            settings = await get_user_settings(user_id)
-            
-            await callback_query.message.edit_text(
-                Messages.SETTINGS_MENU,
-                reply_markup=Keyboards.settings_menu(
-                    bool(settings.get('custom_api_key'))
-                )
-            )
-        except Exception as e:
-            logger.error(f"Error in settings handler: {str(e)}")
-            raise
 
     async def _handle_format_selection(self, callback_query: CallbackQuery) -> None:
         """Handle format selection callbacks."""

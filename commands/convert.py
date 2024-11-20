@@ -6,6 +6,7 @@ from config import ERROR_MESSAGES
 from utils.helpers import get_image_info
 from utils.decorators import rate_limit
 import logging
+from pyrogram.enums import ParseMode
 
 logger = logging.getLogger(__name__)
 
@@ -16,7 +17,7 @@ async def convert_command(client: Client, message: Message) -> None:
         await message.reply_text(
             Messages.FORMAT_SELECTION,
             reply_markup=Keyboards.format_selection(),
-            parse_mode="html"
+            parse_mode=ParseMode.HTML
         )
     except Exception as e:
         logger.error(f"Error in convert command: {str(e)}")
@@ -28,7 +29,8 @@ async def handle_convert_callback(client: Client, callback_query: CallbackQuery)
         format_choice = callback_query.data.split("_")[1]
         await callback_query.message.edit_text(
             f"Selected format: {format_choice.upper()}\n"
-            "Now send me the image you want to convert."
+            "Now send me the image you want to convert.",
+            parse_mode=ParseMode.HTML
         )
         
         # Store user's format choice in database

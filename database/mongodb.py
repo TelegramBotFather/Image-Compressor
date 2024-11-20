@@ -24,6 +24,7 @@ class MongoDB:
             self.settings = self.db.settings
             self.logs = self.db.logs
             self.user_logs = self.db.user_logs
+            self.api_stats = self.db.api_stats
             
             # Verify connection
             asyncio.get_event_loop().run_until_complete(self.client.server_info())
@@ -34,20 +35,14 @@ class MongoDB:
             raise
 
     async def init_indexes(self):
-        """Initialize database indexes for optimized queries."""
+        """Initialize database indexes."""
         try:
-            # Create indexes with background=True for production
             await self.users.create_index("user_id", unique=True, background=True)
             await self.api_keys.create_index("user_id", unique=True, background=True)
-            await self.usage_stats.create_index(
-                [("user_id", 1), ("date", 1)],
-                background=True
-            )
+            await self.usage_stats.create_index([("user_id", 1), ("date", 1)], background=True)
             await self.logs.create_index("timestamp", background=True)
-            await self.user_logs.create_index(
-                [("user_id", 1), ("timestamp", 1)],
-                background=True
-            )
+            await self.user_logs.create_index([("user_id", 1), ("timestamp", 1)], background=True)
+            await self.api_stats.create_index([("user_id", 1), ("date", 1)], background=True)
             logger.info("All indexes created successfully.")
         except Exception as e:
             logger.error(f"Error creating indexes: {str(e)}")

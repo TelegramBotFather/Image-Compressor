@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 import tinify
 from utils import clean_temp_files, cleanup_old_data
 from utils.decorators import rate_limit
+from api_management.api_handler import APIHandler
 from commands import (
     start_command,
     admin_dashboard,

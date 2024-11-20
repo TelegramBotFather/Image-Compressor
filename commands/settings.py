@@ -1,6 +1,6 @@
 from pyrogram import Client
 from pyrogram.types import Message
-from components.buttons import get_settings_buttons
+from components.keyboards import Keyboards
 from database.user_db import get_user_settings
 from utils.decorators import rate_limit
 import logging
@@ -26,7 +26,7 @@ async def settings_command(client: Client, message: Message) -> None:
 
         await message.reply_text(
             settings_text,
-            reply_markup=get_settings_buttons(bool(settings.get('custom_api_key'))),
+            reply_markup=Keyboards.settings_menu(bool(settings.get('custom_api_key'))),
             parse_mode="html"
         )
 

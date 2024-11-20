@@ -6,6 +6,8 @@ from database.user_db import update_user_stats
 from config import TINIFY_API_KEY
 from database.mongodb import db
 import os
+from pyrogram.types import Message
+from components.keyboards import Keyboards
 
 logger = APILogger(__name__)
 

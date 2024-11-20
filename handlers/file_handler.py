@@ -19,6 +19,7 @@ class FileHandler:
         """Handle incoming files and photos."""
         temp_path = None
         compressed_path = None
+        status_msg = None
         
         try:
             user_id = message.from_user.id

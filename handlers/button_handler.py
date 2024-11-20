@@ -53,18 +53,15 @@ class ButtonHandler:
     async def _handle_settings(self, callback_query: CallbackQuery) -> None:
         """Handle settings-related callbacks."""
         try:
-            user_id = callback_query.from_user.id
-            settings = await get_user_settings(user_id)
-            
+            settings = await get_user_settings(callback_query.from_user.id)
             await callback_query.message.edit_text(
-                Messages.SETTINGS_MENU,
+                Messages.SETTINGS,
                 reply_markup=Keyboards.settings_menu(
                     bool(settings.get('custom_api_key'))
                 )
             )
         except Exception as e:
-            logger.error(f"Error in settings handler: {str(e)}")
-            raise
+            logger.error(f"Error handling settings: {str(e)}")
 
     async def _handle_format_selection(self, callback_query: CallbackQuery) -> None:
         """Handle format selection callbacks."""

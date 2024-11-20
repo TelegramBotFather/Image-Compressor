@@ -1,6 +1,6 @@
 from pyrogram import Client
 from pyrogram.types import Message
-from components.buttons import get_support_buttons
+from components.keyboards import Keyboards
 import logging
 
 logger = logging.getLogger(__name__)
@@ -15,7 +15,7 @@ async def support_command(client: Client, message: Message) -> None:
 
         await message.reply_text(
             support_text,
-            reply_markup=get_support_buttons(),
+            reply_markup=Keyboards.main_menu(),
             parse_mode="html"
         )
 

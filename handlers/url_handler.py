@@ -1,6 +1,6 @@
 from pyrogram import Client
 from pyrogram.types import Message
-from components.buttons import get_start_menu_buttons
+from components.keyboards import Keyboards
 from api_management.api_handler import APIHandler
 from logging.channel_logger import ChannelLogger
 from utils import (

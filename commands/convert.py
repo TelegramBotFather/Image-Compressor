@@ -1,6 +1,7 @@
 from pyrogram import Client
 from pyrogram.types import Message, CallbackQuery
 from components.keyboards import Keyboards
+from components.messages import Messages
 from config import ERROR_MESSAGES
 from utils.helpers import get_image_info
 from utils.decorators import rate_limit

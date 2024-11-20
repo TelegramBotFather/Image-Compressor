@@ -30,6 +30,7 @@ from handlers.file_handler import FileHandler
 from handlers.button_handlers import ButtonHandler
 from datetime import datetime
 from log_handlers.channel_logger import ChannelLogger
+from components.keyboards import Keyboards
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

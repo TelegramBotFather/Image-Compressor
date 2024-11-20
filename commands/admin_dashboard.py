@@ -1,5 +1,6 @@
 from pyrogram import Client
-from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
+from pyrogram.types import Message
+from components.keyboards import Keyboards  # Updated import
 from utils.decorators import admin_only
 from database.mongodb import db
 from datetime import datetime, timedelta
@@ -10,48 +11,15 @@ logger = logging.getLogger(__name__)
 @admin_only
 async def admin_dashboard(client: Client, message: Message) -> None:
     try:
-        # Get statistics
-        total_users = await db.users.count_documents({})
-        today = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
-        new_users = await db.users.count_documents({"joined_date": {"$gte": today}})
-        
-        # Get usage statistics
-        total_compressions = await db.usage_stats.count_documents({})
-        today_compressions = await db.usage_stats.count_documents({
-            "date": {"$gte": today}
-        })
-
-        dashboard_text = (
-            "📊 <b>Admin Dashboard</b>\n\n"
-            f"👥 <b>Users</b>\n"
-            f"├ Total Users: {total_users:,}\n"
-            f"└ New Today: {new_users:,}\n\n"
-            f"🖼 <b>Compressions</b>\n"
-            f"├ Total: {total_compressions:,}\n"
-            f"└ Today: {today_compressions:,}\n\n"
-            f"Last Updated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
-        )
-
-        buttons = [
-            [
-                InlineKeyboardButton("📊 Detailed Stats", callback_data="admin_stats"),
-                InlineKeyboardButton("👥 User List", callback_data="admin_users")
-            ],
-            [
-                InlineKeyboardButton("⚙️ Settings", callback_data="admin_settings"),
-                InlineKeyboardButton("📝 Logs", callback_data="admin_logs")
-            ]
-        ]
-
+        dashboard_text = "🔧 <b>Admin Dashboard</b>\n\nSelect an option below:"
         await message.reply_text(
             dashboard_text,
-            reply_markup=InlineKeyboardMarkup(buttons),
+            reply_markup=Keyboards.admin_menu(),  # Updated to use Keyboards class
             parse_mode="html"
         )
-
     except Exception as e:
         logger.error(f"Error in admin dashboard: {str(e)}")
-        await message.reply_text("❌ An error occurred while loading the dashboard.")
+        await message.reply_text("❌ An error occurred. Please try again.")
 
 @admin_only
 async def broadcast_message(client: Client, message: Message) -> None:

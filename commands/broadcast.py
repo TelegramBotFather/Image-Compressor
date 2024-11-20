@@ -1,5 +1,6 @@
 from pyrogram import Client
 from pyrogram.types import Message
+from components.keyboards import Keyboards
 from utils.decorators import admin_only, rate_limit
 from database.mongodb import db
 import asyncio

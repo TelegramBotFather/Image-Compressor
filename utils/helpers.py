@@ -1,11 +1,12 @@
 from typing import Optional, Tuple, List
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 import logging
 from PIL import Image
 import aiohttp
 import aiofiles
-from config import MAX_FILE_SIZE, SUPPORTED_FORMATS
+from config import MAX_FILE_SIZE, SUPPORTED_FORMATS, USER_DATA_EXPIRY_HOURS, RATE_LIMIT_CLEANUP_HOURS
+from database.mongodb import db
 
 logger = logging.getLogger(__name__)
 
@@ -61,3 +62,34 @@ def format_size(size_bytes: int) -> str:
             return f"{size_bytes:.2f} {unit}"
         size_bytes /= 1024
     return f"{size_bytes:.2f} TB"
+
+async def cleanup_old_data():
+    """Clean up old data from the database periodically."""
+    try:
+        # Calculate cutoff times
+        usage_cutoff = datetime.utcnow() - timedelta(hours=USER_DATA_EXPIRY_HOURS)
+        rate_limit_cutoff = datetime.utcnow() - timedelta(hours=RATE_LIMIT_CLEANUP_HOURS)
+
+        # Clean up old usage stats
+        result = await db.usage_stats.delete_many({
+            "timestamp": {"$lt": usage_cutoff}
+        })
+        logger.info(f"Cleaned up {result.deleted_count} old usage stats")
+
+        # Clean up old rate limit records
+        result = await db.rate_limits.delete_many({
+            "timestamp": {"$lt": rate_limit_cutoff}
+        })
+        logger.info(f"Cleaned up {result.deleted_count} old rate limit records")
+
+        # Clean up old logs
+        result = await db.logs.delete_many({
+            "timestamp": {"$lt": usage_cutoff}
+        })
+        logger.info(f"Cleaned up {result.deleted_count} old logs")
+
+        # Clean up temporary files
+        await clean_temp_files()
+
+    except Exception as e:
+        logger.error(f"Error during cleanup: {str(e)}")

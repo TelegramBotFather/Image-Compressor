@@ -27,7 +27,7 @@ from config import (
     LOG_CHANNEL_ID,
     BOT_VERSION
 )
-from database.mongodb import db
+from database.mongodb import mongodb, db
 from handlers.file_handler import FileHandler
 from handlers.button_handlers import ButtonHandler
 from datetime import datetime
@@ -61,7 +61,7 @@ async def start_bot():
     """Initialize bot and verify configurations."""
     try:
         # Initialize MongoDB indexes
-        await db.init_indexes()
+        await mongodb.init_indexes()
         
         # Start the bot
         await app.start()

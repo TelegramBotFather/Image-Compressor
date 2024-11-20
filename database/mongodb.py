@@ -49,4 +49,5 @@ class MongoDB:
             raise
 
 # Initialize MongoDB instance
-db = MongoDB().db
+mongodb = MongoDB()
+db = mongodb.db

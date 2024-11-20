@@ -1,0 +1,23 @@
+# Environment
+.env
+venv/
+__pycache__/
+
+# Temporary files
+temp/*
+!temp/.gitkeep
+uploads/*
+!uploads/.gitkeep
+
+# Logs
+*.log
+logs/*
+!logs/.gitkeep
+
+# IDE
+.vscode/
+.idea/
+
+# System
+.DS_Store
+Thumbs.db

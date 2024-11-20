@@ -1,0 +1,57 @@
+{
+  "name": "Image Compressor Bot",
+  "description": "A Telegram bot that compresses images while maintaining quality using TinyPNG API",
+  "keywords": [
+    "telegram",
+    "bot",
+    "python",
+    "image",
+    "compression",
+    "tinypng"
+  ],
+  "repository": "https://github.com/TelegramBotFather/Image-Compressor",
+  "website": "https://github.com/TelegramBotFather/Image-Compressor",
+  "success_url": "https://t.me/ImageCompressorProBot",
+  "env": {
+    "API_ID": {
+      "description": "Get this value from my.telegram.org",
+      "required": true
+    },
+    "API_HASH": {
+      "description": "Get this value from my.telegram.org",
+      "required": true
+    },
+    "BOT_TOKEN": {
+      "description": "Get this from @BotFather",
+      "required": true
+    },
+    "TINIFY_API_KEY": {
+      "description": "Get your API key from tinypng.com",
+      "required": true
+    },
+    "MONGO_URI": {
+      "description": "MongoDB connection string",
+      "required": true
+    },
+    "ADMIN_ID": {
+      "description": "Your Telegram User ID",
+      "required": true
+    },
+    "LOG_CHANNEL_ID": {
+      "description": "Telegram Channel ID for logs (with -100 prefix)",
+      "required": true
+    }
+  },
+  "buildpacks": [
+    {
+      "url": "heroku/python"
+    }
+  ],
+  "formation": {
+    "worker": {
+      "quantity": 1,
+      "size": "standard-2x"
+    }
+  }
+}
+

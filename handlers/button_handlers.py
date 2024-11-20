@@ -3,9 +3,10 @@ from pyrogram.types import CallbackQuery
 from pyrogram.enums import ParseMode
 from database.mongodb import db
 from components.keyboards import Keyboards
+from components.messages import Messages
 from commands.convert import convert_command
 from commands.stats import usage_stats
-from database.user_db import get_user_settings
+from database.user_db import get_user_settings, update_user_settings
 from api_management.api_handler import APIHandler
 import logging
 
@@ -47,7 +48,21 @@ class ButtonHandler:
         try:
             data = callback_query.data
             
-            if data == "convert":
+            if data == "help":
+                await callback_query.message.edit_text(
+                    Messages.HELP,
+                    reply_markup=Keyboards.help_menu(),
+                    parse_mode=ParseMode.HTML
+                )
+                
+            elif data == "start":
+                await callback_query.message.edit_text(
+                    Messages.WELCOME,
+                    reply_markup=Keyboards.main_menu(),
+                    parse_mode=ParseMode.HTML
+                )
+                
+            elif data == "convert":
                 await convert_command(self.client, callback_query.message)
                 await callback_query.answer()
             
@@ -82,6 +97,23 @@ class ButtonHandler:
                 else:
                     await self._handle_settings(callback_query)
                     
+            elif data.startswith("set_format_"):
+                format_choice = data.split("_")[2]  # Extract format from set_format_jpeg
+                user_id = callback_query.from_user.id
+                
+                # Update user's default format
+                await update_user_settings(user_id, {'default_format': format_choice})
+                
+                # Show confirmation and return to settings
+                await callback_query.message.edit_text(
+                    f"✅ Default format set to {format_choice.upper()}\n"
+                    "Your images will be converted to this format by default.",
+                    reply_markup=Keyboards.settings_menu(
+                        bool((await get_user_settings(user_id)).get('custom_api_key'))
+                    ),
+                    parse_mode=ParseMode.HTML
+                )
+            
             await callback_query.answer()
                 
         except Exception as e:
@@ -130,9 +162,16 @@ class ButtonHandler:
             settings = await get_user_settings(user_id)
             has_api_key = bool(settings.get('custom_api_key'))
             
+            api_settings_text = (
+                "🔑 <b>API Key Settings</b>\n\n"
+                f"Status: {'✅ Custom API Key Set' if has_api_key else '❌ No Custom API Key'}\n\n"
+                "You can add your own TinyPNG API key for better rate limits."
+            )
+            
             await callback_query.message.edit_text(
-                Messages.API_KEY_SETTINGS,
-                reply_markup=Keyboards.api_key_settings(has_api_key)
+                api_settings_text,
+                reply_markup=Keyboards.api_key_settings(has_api_key),
+                parse_mode=ParseMode.HTML
             )
         except Exception as e:
             logger.error(f"Error in API key handler: {str(e)}")

@@ -128,3 +128,14 @@ class Keyboards:
                 InlineKeyboardButton("🏠 Main Menu", callback_data="start")
             ]
         ])
+
+    @staticmethod
+    def format_selection() -> InlineKeyboardMarkup:
+        """Format selection keyboard."""
+        return InlineKeyboardMarkup([
+            [
+                InlineKeyboardButton("WEBP", callback_data="format_webp"),
+                InlineKeyboardButton("JPEG", callback_data="format_jpeg"),
+                InlineKeyboardButton("PNG", callback_data="format_png")
+            ]
+        ])

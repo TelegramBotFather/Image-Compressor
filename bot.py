@@ -32,6 +32,7 @@ from datetime import datetime
 from log_handlers.channel_logger import ChannelLogger
 from components.keyboards import Keyboards
 from pyrogram.handlers import MessageHandler, CallbackQueryHandler
+from pyrogram.enums import ParseMode
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -84,7 +85,8 @@ async def start_bot():
         await app.send_message(
             LOG_CHANNEL_ID,
             f"🟢 Bot Started\nVersion: {BOT_VERSION}\n"
-            f"Start Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+            f"Start Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+            parse_mode=ParseMode.HTML
         )
         
         logger.info("Bot started successfully!")

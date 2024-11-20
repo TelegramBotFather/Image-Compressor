@@ -4,6 +4,7 @@ from components.keyboards import Keyboards
 from database.user_db import get_user_settings
 from utils.decorators import rate_limit
 import logging
+from pyrogram.enums import ParseMode
 
 logger = logging.getLogger(__name__)
 
@@ -27,7 +28,7 @@ async def settings_command(client: Client, message: Message) -> None:
         await message.reply_text(
             settings_text,
             reply_markup=Keyboards.settings_menu(bool(settings.get('custom_api_key'))),
-            parse_mode="html"
+            parse_mode=ParseMode.HTML
         )
 
     except Exception as e:

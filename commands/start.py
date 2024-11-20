@@ -1,5 +1,6 @@
 from pyrogram import Client
 from pyrogram.types import Message
+from pyrogram.enums import ParseMode
 from components.keyboards import Keyboards
 from database.user_db import save_user
 from log_handlers.channel_logger import ChannelLogger
@@ -28,7 +29,7 @@ async def start_command(client: Client, message: Message) -> None:
         await message.reply_text(
             Messages.WELCOME,
             reply_markup=Keyboards.main_menu(),
-            parse_mode="html"
+            parse_mode=ParseMode.HTML
         )
 
     except Exception as e:

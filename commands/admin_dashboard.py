@@ -5,6 +5,7 @@ from utils.decorators import admin_only
 from database.mongodb import db
 from datetime import datetime, timedelta
 import logging
+from pyrogram.enums import ParseMode  # Add this import
 
 logger = logging.getLogger(__name__)
 
@@ -15,7 +16,7 @@ async def admin_dashboard(client: Client, message: Message) -> None:
         await message.reply_text(
             dashboard_text,
             reply_markup=Keyboards.admin_menu(),  # Updated to use Keyboards class
-            parse_mode="html"
+            parse_mode=ParseMode.HTML  # Updated this line
         )
     except Exception as e:
         logger.error(f"Error in admin dashboard: {str(e)}")

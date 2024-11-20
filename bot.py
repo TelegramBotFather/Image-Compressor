@@ -5,7 +5,8 @@ from pyrogram import Client, filters
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from dotenv import load_dotenv
 import tinify
-from utils import check_rate_limit, cleanup_old_data
+from utils.helpers import clean_temp_files
+from utils.decorators import rate_limit
 from commands import (
     start_command,
     admin_dashboard,

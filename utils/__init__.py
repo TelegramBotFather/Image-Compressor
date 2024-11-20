@@ -5,7 +5,6 @@ from .helpers import (
     format_size
 )
 from .decorators import admin_only, rate_limit, handle_errors
-from .error_handler import ErrorHandler
 
 __all__ = [
     'get_image_info',
@@ -14,6 +13,5 @@ __all__ = [
     'format_size',
     'admin_only',
     'rate_limit',
-    'handle_errors',
-    'ErrorHandler'
+    'handle_errors'
 ]

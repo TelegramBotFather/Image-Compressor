@@ -114,6 +114,9 @@ class ButtonHandler:
                     parse_mode=ParseMode.HTML
                 )
             
+            elif data.startswith("format_"):
+                await self._handle_format_selection(callback_query)
+            
             await callback_query.answer()
                 
         except Exception as e:
@@ -141,19 +144,18 @@ class ButtonHandler:
     async def _handle_format_selection(self, callback_query: CallbackQuery) -> None:
         """Handle format selection callbacks."""
         try:
-            format_choice = callback_query.data.split("_")[1]
+            format_choice = callback_query.data.split("_")[1]  # format_jpeg -> jpeg
             user_id = callback_query.from_user.id
             
             await update_user_settings(user_id, {'default_format': format_choice})
+            settings = await get_user_settings(user_id)
             
-            await callback_query.message.edit_text(
-                f"Selected format: {format_choice.upper()}\n"
-                "Now send me an image to convert.",
-                reply_markup=Keyboards.main_menu()
-            )
+            await self._update_settings_message(callback_query, settings)
+            await callback_query.answer(f"Format set to {format_choice.upper()}")
+            
         except Exception as e:
             logger.error(f"Error in format selection: {str(e)}")
-            raise
+            await callback_query.answer("❌ Error setting format", show_alert=True)
 
     async def _handle_api_key(self, callback_query: CallbackQuery) -> None:
         """Handle API key related callbacks."""

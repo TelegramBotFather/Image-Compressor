@@ -18,12 +18,16 @@ async def start_command(client: Client, message: Message) -> None:
         username = message.from_user.username
         first_name = message.from_user.first_name
 
-        # Save user to database
-        await save_user(user_id, username, first_name)
+        # Check if user exists
+        existing_user = await db.users.find_one({"user_id": user_id})
+        is_new_user = existing_user is None
 
-        # Log new user
-        channel_logger = ChannelLogger(client)
-        await channel_logger.log_new_user(user_id, username)
+        # Save user to database
+        if is_new_user:
+            await save_user(user_id, username, first_name)
+            # Log new user only if they're actually new
+            channel_logger = ChannelLogger(client)
+            await channel_logger.log_new_user(user_id, username)
 
         # Send welcome message
         await message.reply_text(

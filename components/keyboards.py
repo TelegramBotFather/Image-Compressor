@@ -134,8 +134,30 @@ class Keyboards:
         """Format selection keyboard."""
         return InlineKeyboardMarkup([
             [
-                InlineKeyboardButton("WEBP", callback_data="format_webp"),
                 InlineKeyboardButton("JPEG", callback_data="format_jpeg"),
                 InlineKeyboardButton("PNG", callback_data="format_png")
+            ],
+            [
+                InlineKeyboardButton("WEBP", callback_data="format_webp")
+            ],
+            [
+                InlineKeyboardButton("🔙 Back", callback_data="settings")
+            ]
+        ])
+
+    @staticmethod
+    def admin_menu() -> InlineKeyboardMarkup:
+        """Admin menu keyboard."""
+        return InlineKeyboardMarkup([
+            [
+                InlineKeyboardButton("📊 Statistics", callback_data="admin_stats"),
+                InlineKeyboardButton("📢 Broadcast", callback_data="admin_broadcast")
+            ],
+            [
+                InlineKeyboardButton("👥 Users", callback_data="admin_users"),
+                InlineKeyboardButton("⚙️ Settings", callback_data="admin_settings")
+            ],
+            [
+                InlineKeyboardButton("🏠 Main Menu", callback_data="start")
             ]
         ])

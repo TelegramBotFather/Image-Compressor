@@ -1,7 +1,7 @@
 import os
 import asyncio
 import logging
-from pyrogram import Client, filters
+from pyrogram import Client, filters, idle
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from dotenv import load_dotenv
 import tinify
@@ -54,25 +54,6 @@ missing_vars = [var for var in required_vars if not os.getenv(var)]
 if missing_vars:
     raise ValueError(f"Missing required environment variables: {', '.join(missing_vars)}")
 
-# Initialize bot
-app = Client(
-    "image_compressor_bot",
-    api_id=os.getenv("API_ID"),
-    api_hash=os.getenv("API_HASH"),
-    bot_token=os.getenv("BOT_TOKEN")
-)
-
-# Initialize handlers
-file_handler = FileHandler(app)
-button_handler = ButtonHandler(app)
-
-# Initialize TinyPNG
-tinify.key = os.getenv("TINIFY_API_KEY")
-
-# Initialize scheduler
-scheduler = AsyncIOScheduler()
-scheduler.add_job(cleanup_old_data, 'interval', hours=1)
-
 async def start_bot():
     """Initialize bot and verify configurations."""
     try:
@@ -82,7 +63,7 @@ async def start_bot():
         # Start the bot
         await app.start()
         
-        # Register command handlers
+        # Register handlers
         app.add_handler(MessageHandler(start_command, filters.command("start")))
         app.add_handler(MessageHandler(support_command, filters.command("help")))
         app.add_handler(MessageHandler(settings_command, filters.command("settings")))
@@ -93,34 +74,49 @@ async def start_bot():
         app.add_handler(MessageHandler(banned_users_list, filters.command("banned_users")))
         app.add_handler(MessageHandler(admin_dashboard, filters.command("admin")))
         app.add_handler(MessageHandler(usage_stats, filters.command("stats")))
-
-        # Register message handlers
         app.add_handler(MessageHandler(file_handler.handle, filters.photo | filters.document))
         app.add_handler(CallbackQueryHandler(button_handler.handle))
+
+        # Start scheduler
+        scheduler.start()
         
-        # Verify log channel
-        log_channel_id = os.getenv("LOG_CHANNEL_ID")
-        if not log_channel_id.startswith("-100"):
-            raise ValueError("LOG_CHANNEL_ID must start with -100")
-            
         # Send startup message
         await app.send_message(
-            int(log_channel_id),
+            LOG_CHANNEL_ID,
             f"🟢 Bot Started\nVersion: {BOT_VERSION}\n"
             f"Start Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
         )
         
-        # Start scheduler
-        scheduler.start()
-        
         logger.info("Bot started successfully!")
+        
+        # Keep the bot running
+        await idle()
         
     except Exception as e:
         logger.error(f"Error starting bot: {str(e)}")
         raise
+    finally:
+        await app.stop()
 
 if __name__ == "__main__":
     try:
+        app = Client(
+            "image_compressor_bot",
+            api_id=os.getenv("API_ID"),
+            api_hash=os.getenv("API_HASH"),
+            bot_token=os.getenv("BOT_TOKEN")
+        )
+        
+        # Initialize handlers
+        file_handler = FileHandler(app)
+        button_handler = ButtonHandler(app)
+        
+        # Initialize scheduler
+        scheduler = AsyncIOScheduler()
+        scheduler.add_job(cleanup_old_data, 'interval', hours=1)
+        
+        # Run the bot
         app.run(start_bot())
+        
     except Exception as e:
         logger.error(f"Bot crashed: {str(e)}")

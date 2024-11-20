@@ -2,7 +2,7 @@ from typing import Optional, Dict, Any
 from pyrogram import Client
 from pyrogram.types import Message
 from .api_handler import APIHandler
-from components.buttons import get_settings_buttons
+from components.keyboards import get_settings_buttons
 from log_handlers.channel_logger import ChannelLogger
 import logging
 

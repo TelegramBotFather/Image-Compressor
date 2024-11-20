@@ -31,6 +31,7 @@ from handlers.button_handlers import ButtonHandler
 from datetime import datetime
 from log_handlers.channel_logger import ChannelLogger
 from components.keyboards import Keyboards
+from pyrogram.handlers import MessageHandler, CallbackQueryHandler
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -115,11 +116,8 @@ app.add_handler(filters.command("admin"), admin_dashboard)
 app.add_handler(filters.command("stats"), usage_stats)
 
 # Register message handlers
-file_handler = FileHandler(app)
-button_handler = ButtonHandler(app)
-
-app.add_handler(filters.photo | filters.document, file_handler.handle)
-app.add_handler(filters.callback_query, button_handler.handle)
+app.add_handler(MessageHandler(file_handler.handle, filters.photo | filters.document))
+app.add_handler(CallbackQueryHandler(button_handler.handle))
 
 if __name__ == "__main__":
     try:

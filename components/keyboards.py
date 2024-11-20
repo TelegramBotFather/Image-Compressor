@@ -25,7 +25,7 @@ class Keyboards:
         buttons = [
             [
                 InlineKeyboardButton(
-                    f"🔑 API Key ({'✅' if has_api_key else '❌'})", 
+                    "🔑 API Key", 
                     callback_data="settings_api"
                 )
             ],
@@ -51,28 +51,18 @@ class Keyboards:
         return InlineKeyboardMarkup(buttons)
 
     @staticmethod
-    def format_selection() -> InlineKeyboardMarkup:
-        """Format selection keyboard."""
-        buttons = []
-        # Add format buttons in pairs
-        for i in range(0, len(CONVERSION_FORMATS), 2):
-            row = []
-            row.append(InlineKeyboardButton(
-                CONVERSION_FORMATS[i].upper(),
-                callback_data=f"format_{CONVERSION_FORMATS[i]}"
-            ))
-            if i + 1 < len(CONVERSION_FORMATS):
-                row.append(InlineKeyboardButton(
-                    CONVERSION_FORMATS[i + 1].upper(),
-                    callback_data=f"format_{CONVERSION_FORMATS[i + 1]}"
-                ))
-            buttons.append(row)
-        
-        # Add back button
-        buttons.append([
-            InlineKeyboardButton("🏠 Back to Menu", callback_data="start")
+    def format_selection_settings() -> InlineKeyboardMarkup:
+        """Format selection keyboard for settings."""
+        return InlineKeyboardMarkup([
+            [
+                InlineKeyboardButton("WEBP", callback_data="set_format_webp"),
+                InlineKeyboardButton("JPEG", callback_data="set_format_jpeg"),
+                InlineKeyboardButton("PNG", callback_data="set_format_png")
+            ],
+            [
+                InlineKeyboardButton("🔙 Back to Settings", callback_data="settings")
+            ]
         ])
-        return InlineKeyboardMarkup(buttons)
 
     @staticmethod
     def api_key_settings(has_api_key: bool) -> InlineKeyboardMarkup:

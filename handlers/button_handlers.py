@@ -1,11 +1,11 @@
 from pyrogram import Client
 from pyrogram.types import CallbackQuery
 from pyrogram.enums import ParseMode
-from components.messages import Messages
+from database.mongodb import db
 from components.keyboards import Keyboards
-from api_management.api_handler import APIHandler
-from database.user_db import get_user_settings, update_user_settings
-from config import ERROR_MESSAGES
+from commands.convert import convert_command
+from commands.stats import usage_stats
+from database.user_db import get_user_settings
 import logging
 
 logger = logging.getLogger(__name__)
@@ -41,44 +41,69 @@ class ButtonHandler:
             logger.error(f"Error in settings handler: {str(e)}")
             raise
 
-    async def handle(self, client: Client, callback_query: CallbackQuery) -> None:
+    async def handle_callback(self, callback_query: CallbackQuery) -> None:
         """Handle all callback queries."""
         try:
             data = callback_query.data
-            message = callback_query.message
-            user_id = callback_query.from_user.id
-
-            if data == "start":
-                await message.edit_text(
-                    Messages.WELCOME,
-                    reply_markup=Keyboards.main_menu(),
-                    parse_mode=ParseMode.HTML
-                )
-                
-            elif data == "help":
-                await message.edit_text(
-                    Messages.HELP,
-                    reply_markup=Keyboards.help_menu(),
-                    parse_mode=ParseMode.HTML
-                )
+            
+            if data == "convert":
+                await convert_command(self.client, callback_query.message)
+                await callback_query.answer()
+            
+            elif data == "stats":
+                await usage_stats(self.client, callback_query.message)
+                await callback_query.answer()
                 
             elif data.startswith("settings"):
-                await self._handle_settings(callback_query)
-                
-            elif data.startswith("format"):
-                await self._handle_format_selection(callback_query)
-                
-            elif data.startswith("api_key"):
-                await self._handle_api_key(callback_query)
-                
+                if data == "settings_notifications":
+                    # Toggle notifications instead of showing same message
+                    user_id = callback_query.from_user.id
+                    settings = await get_user_settings(user_id)
+                    new_status = not settings.get('notifications_enabled', True)
+                    
+                    await db.settings.update_one(
+                        {"user_id": user_id},
+                        {"$set": {"notifications_enabled": new_status}},
+                        upsert=True
+                    )
+                    
+                    # Update message with new status
+                    settings['notifications_enabled'] = new_status
+                    await self._update_settings_message(callback_query, settings)
+                    
+                elif data == "settings_format":
+                    # Show format selection keyboard instead of same message
+                    keyboard = Keyboards.format_selection_settings()
+                    await callback_query.message.edit_text(
+                        "Select your default format:",
+                        reply_markup=keyboard
+                    )
+                else:
+                    await self._handle_settings(callback_query)
+                    
             await callback_query.answer()
-            
+                
         except Exception as e:
             logger.error(f"Error handling callback: {str(e)}")
-            await callback_query.answer(
-                ERROR_MESSAGES["general_error"],
-                show_alert=True
-            )
+            await callback_query.answer("❌ An error occurred", show_alert=True)
+
+    async def _update_settings_message(self, callback_query: CallbackQuery, settings: dict) -> None:
+        """Update settings message with current status."""
+        settings_text = (
+            "⚙️ <b>Bot Settings</b>\n\n"
+            "Configure your preferences:\n\n"
+            "🔑 <b>API Settings</b>\n"
+            f"├ Custom API: {'✅ Enabled' if settings.get('custom_api_key') else '❌ Disabled'}\n"
+            f"└ Default Format: {settings.get('default_format', 'JPEG').upper()}\n\n"
+            "🔔 <b>Notifications</b>\n"
+            f"└ Status: {'✅ Enabled' if settings.get('notifications_enabled') else '❌ Disabled'}"
+        )
+        
+        await callback_query.message.edit_text(
+            settings_text,
+            reply_markup=Keyboards.settings_menu(bool(settings.get('custom_api_key'))),
+            parse_mode=ParseMode.HTML
+        )
 
     async def _handle_format_selection(self, callback_query: CallbackQuery) -> None:
         """Handle format selection callbacks."""

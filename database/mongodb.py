@@ -48,4 +48,5 @@ class MongoDB:
             logger.error(f"Error creating indexes: {str(e)}")
             raise
 
-db = MongoDB()
+# Initialize MongoDB instance
+db = MongoDB().db

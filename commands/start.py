@@ -2,6 +2,7 @@ from pyrogram import Client
 from pyrogram.types import Message
 from pyrogram.enums import ParseMode
 from components.keyboards import Keyboards
+from database.mongodb import db
 from database.user_db import save_user
 from log_handlers.channel_logger import ChannelLogger
 from components.messages import Messages

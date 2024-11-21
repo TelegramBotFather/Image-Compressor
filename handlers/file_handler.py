@@ -1,5 +1,5 @@
 from pyrogram import Client
-from pyrogram.types import Message, PhotoSize
+from pyrogram.types import Message
 from pyrogram.enums import ParseMode
 from utils.helpers import get_image_info, clean_temp_files, format_size
 from api_management.api_handler import APIHandler
@@ -10,9 +10,7 @@ import os
 import logging
 import time
 from database.user_db import get_user_settings
-from components.messages import Messages
 from log_handlers.channel_logger import ChannelLogger
-from utils.error_handler import handle_error
 
 logger = logging.getLogger(__name__)
 
@@ -37,7 +35,8 @@ class FileHandler:
             
             # Get file info based on message type
             if message.photo:
-                file_id = message.photo.file_id if isinstance(message.photo, PhotoSize) else message.photo[-1].file_id
+                # Updated photo handling
+                file_id = message.photo[-1].file_id
                 file_name = f"{file_id}.jpg"
                 mime_type = "image/jpeg"
             elif message.document:

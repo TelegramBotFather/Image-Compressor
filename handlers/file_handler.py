@@ -1,7 +1,7 @@
 from pyrogram import Client
-from pyrogram.types import Message
+from pyrogram.types import Message, PhotoSize
 from pyrogram.enums import ParseMode
-from utils.helpers import get_image_info, clean_temp_files
+from utils.helpers import get_image_info, clean_temp_files, format_size
 from api_management.api_handler import APIHandler
 from components.messages import Messages
 from components.keyboards import Keyboards
@@ -11,6 +11,8 @@ import logging
 import time
 from database.user_db import get_user_settings
 from components.messages import Messages
+from log_handlers.channel_logger import ChannelLogger
+from utils.error_handler import handle_error
 
 logger = logging.getLogger(__name__)
 
@@ -18,71 +20,129 @@ class FileHandler:
     def __init__(self, client: Client):
         self.client = client
         self.api_handler = APIHandler()
+        self.channel_logger = ChannelLogger(client)
 
-    async def handle(self, client: Client, message: Message) -> None:
-        """Handle file messages."""
-        status_msg = None
-        temp_path = None
-        compressed_path = None
-        
+    async def handle(self, message: Message) -> None:
+        """Handle incoming photo or document messages."""
         try:
-            # Check if message has a valid file
-            if not message.photo and not message.document:
-                await message.reply_text(ERROR_MESSAGES["invalid_image"])
+            user_id = message.from_user.id
+            username = message.from_user.username or "No username"
+            
+            # Log to channel
+            await self.channel_logger.log_image_request(
+                user_id=user_id,
+                username=username,
+                message_type="photo" if message.photo else "document"
+            )
+            
+            # Get file info based on message type
+            if message.photo:
+                file_id = message.photo.file_id if isinstance(message.photo, PhotoSize) else message.photo[-1].file_id
+                file_name = f"{file_id}.jpg"
+                mime_type = "image/jpeg"
+            elif message.document:
+                file_id = message.document.file_id
+                file_name = message.document.file_name
+                mime_type = message.document.mime_type
+            else:
+                await message.reply_text(ERROR_MESSAGES["invalid_format"])
                 return
 
-            # Get file ID and user settings
-            file_id = message.photo[-1].file_id if message.photo else message.document.file_id
-            user_id = message.from_user.id
-            user_settings = await get_user_settings(user_id)
-            target_format = user_settings.get('default_format', 'jpeg')
-
-            # Send processing message
-            status_msg = await message.reply_text(
-                Messages.PROCESSING,
-                parse_mode=ParseMode.HTML
-            )
+            # Validate file format
+            if not any(ext in file_name.lower() for ext in SUPPORTED_FORMATS):
+                await message.reply_text(ERROR_MESSAGES["invalid_format"])
+                return
 
             # Download file
-            temp_path = f"temp/{file_id}_{int(time.time())}"
-            await message.download(temp_path)
-
-            # Check file size and format
-            success, info = await get_image_info(temp_path)
-            if not success:
-                await status_msg.edit_text(ERROR_MESSAGES["invalid_image"])
+            progress_message = await message.reply_text("⏳ Downloading file...")
+            temp_path = os.path.join("temp", f"temp_{file_id}_{file_name}")
+            
+            try:
+                await message.download(temp_path)
+            except Exception as e:
+                logger.error(f"Error downloading file: {str(e)}")
+                await progress_message.edit_text(ERROR_MESSAGES["general_error"])
                 return
 
-            if info['size'] > MAX_FILE_SIZE:
-                await status_msg.edit_text(ERROR_MESSAGES["file_too_large"])
-                return
-
-            # Compress image
-            success, compressed_path, error_msg = await self.api_handler.compress_image(
-                temp_path,
-                user_id,
-                target_format
-            )
-
-            if not success:
-                await status_msg.edit_text(error_msg or ERROR_MESSAGES["general_error"])
-                return
-
-            # Send compressed image
-            await message.reply_document(
-                compressed_path,
-                caption=f"✅ Compressed and converted to {target_format.upper()}\n"
-                       f"Original: {info['size']/1024:.1f}KB\n"
-                       f"Compressed: {os.path.getsize(compressed_path)/1024:.1f}KB"
-            )
-            await status_msg.delete()
+            # Process the image
+            await self._process_image(message, progress_message, temp_path, file_name)
 
         except Exception as e:
             logger.error(f"Error handling file: {str(e)}")
-            if status_msg:
-                await status_msg.edit_text(ERROR_MESSAGES["general_error"])
-        
+            await message.reply_text(ERROR_MESSAGES["general_error"])
         finally:
-            # Clean up temporary files
-            paths_to_clean = [p for p in [temp_path, compressed_path] if p and os.path.exists(p)]
-            await clean_temp_files(paths_to_clean)
+            # Cleanup
+            if 'temp_path' in locals():
+                await clean_temp_files([temp_path])
+
+    async def _process_image(self, message: Message, progress_message: Message, temp_path: str, file_name: str) -> None:
+        """Process the downloaded image."""
+        try:
+            # Get user settings
+            user_settings = await get_user_settings(message.from_user.id)
+            output_format = user_settings.get('default_format', 'jpeg')
+
+            # Update progress
+            await progress_message.edit_text("🔄 Processing image...")
+
+            # Compress image
+            compressed_path = os.path.join("temp", f"compressed_{file_name}")
+            compression_result = await self.api_handler.compress_image(
+                temp_path, 
+                compressed_path,
+                output_format,
+                message.from_user.id
+            )
+
+            if compression_result.get("success"):
+                # Send compressed image
+                await self._send_compressed_image(
+                    message,
+                    progress_message,
+                    compressed_path,
+                    compression_result
+                )
+            else:
+                await progress_message.edit_text(ERROR_MESSAGES["general_error"])
+
+        except Exception as e:
+            await handle_error(message, e, "Error processing image")
+            await progress_message.edit_text(ERROR_MESSAGES["general_error"])
+        finally:
+            # Cleanup
+            if 'compressed_path' in locals():
+                await clean_temp_files([compressed_path])
+
+    async def _send_compressed_image(
+        self,
+        original_message: Message,
+        progress_message: Message,
+        compressed_path: str,
+        compression_result: dict
+    ) -> None:
+        """Send the compressed image with stats."""
+        try:
+            # Calculate compression stats
+            original_size = os.path.getsize(compressed_path)
+            compressed_size = compression_result.get("compressed_size", 0)
+            saved_percentage = ((original_size - compressed_size) / original_size) * 100
+
+            # Prepare caption
+            caption = (
+                "✅ Image compressed successfully!\n\n"
+                f"Original Size: {format_size(original_size)}\n"
+                f"Compressed Size: {format_size(compressed_size)}\n"
+                f"Space Saved: {saved_percentage:.1f}%"
+            )
+
+            # Send compressed image
+            await original_message.reply_document(
+                document=compressed_path,
+                caption=caption,
+                force_document=True
+            )
+            await progress_message.delete()
+
+        except Exception as e:
+            logger.error(f"Error sending compressed image: {str(e)}")
+            await progress_message.edit_text(ERROR_MESSAGES["general_error"])

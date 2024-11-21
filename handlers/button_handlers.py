@@ -48,6 +48,11 @@ class ButtonHandler:
         try:
             data = callback_query.data
             
+            # Admin panel handlers
+            if data.startswith("admin_"):
+                await self._handle_admin_buttons(callback_query)
+                return
+
             if data == "help":
                 await callback_query.message.edit_text(
                     Messages.HELP,
@@ -178,3 +183,60 @@ class ButtonHandler:
         except Exception as e:
             logger.error(f"Error in API key handler: {str(e)}")
             raise
+
+    async def _handle_admin_buttons(self, callback_query: CallbackQuery) -> None:
+        """Handle admin panel button callbacks."""
+        try:
+            data = callback_query.data
+            user_id = callback_query.from_user.id
+
+            # Verify admin status
+            if user_id not in ADMIN_IDS:
+                await callback_query.answer("⚠️ Unauthorized access", show_alert=True)
+                return
+
+            if data == "admin_stats":
+                # Show detailed statistics
+                from commands.admin_stats import detailed_stats
+                await detailed_stats(self.client, callback_query.message)
+                
+            elif data == "admin_users":
+                # Show user management options
+                await callback_query.message.edit_text(
+                    "👥 <b>User Management</b>\n\n"
+                    "Select an action below:",
+                    reply_markup=Keyboards.user_management_menu(),
+                    parse_mode=ParseMode.HTML
+                )
+                
+            elif data == "admin_broadcast":
+                # Show broadcast message input prompt
+                await callback_query.message.edit_text(
+                    "📣 <b>Broadcast Message</b>\n\n"
+                    "Please send the message you want to broadcast to all users.\n"
+                    "Use /cancel to cancel the broadcast.",
+                    parse_mode=ParseMode.HTML
+                )
+                
+            elif data == "admin_settings":
+                # Show admin settings
+                await callback_query.message.edit_text(
+                    "⚙️ <b>Admin Settings</b>\n\n"
+                    "Configure bot settings below:",
+                    reply_markup=Keyboards.admin_settings_menu(),
+                    parse_mode=ParseMode.HTML
+                )
+                
+            elif data == "admin_back":
+                # Return to main admin menu
+                await callback_query.message.edit_text(
+                    "🔧 <b>Admin Dashboard</b>\n\nSelect an option below:",
+                    reply_markup=Keyboards.admin_menu(),
+                    parse_mode=ParseMode.HTML
+                )
+
+            await callback_query.answer()
+
+        except Exception as e:
+            logger.error(f"Error in admin button handler: {str(e)}")
+            await callback_query.answer("❌ An error occurred", show_alert=True)

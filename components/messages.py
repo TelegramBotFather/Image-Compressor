@@ -59,14 +59,28 @@ class Messages:
     SUCCESS = "✅ Image processed successfully!"
     RATE_LIMIT = "⚠️ Please wait before sending another image."
 
-    FORMAT_SELECTION = (
-        "🔄 <b>Format Selection</b>\n\n"
-        "Choose the output format for your image:\n\n"
-        f"📱 <b>WEBP</b>\n• {FORMAT_DESCRIPTIONS['webp']}\n\n"
-        f"📸 <b>JPEG</b>\n• {FORMAT_DESCRIPTIONS['jpeg']}\n\n"
-        f"🎨 <b>PNG</b>\n• {FORMAT_DESCRIPTIONS['png']}\n\n"
-        "ℹ️ Your choice will be remembered for future conversions."
-    )
+    FORMAT_SELECTION = """
+    🎨 <b>Format Selection</b>
+
+    Choose your preferred format:
+
+    📱 <b>WEBP</b>
+    • Smallest file size
+    • Best for web/apps
+    • Supports animation
+
+    📸 <b>JPEG</b>
+    • Great for photos
+    • Wide compatibility
+    • Balanced quality
+
+    🎨 <b>PNG</b>
+    • Lossless quality
+    • Supports transparency
+    • Best for graphics
+
+    <i>Tip: WEBP usually gives the best compression!</i>
+    """
 
     SUPPORT = (
         "💬 <b>Support & Contact</b>\n\n"

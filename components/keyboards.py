@@ -7,48 +7,28 @@ class Keyboards:
     
     @staticmethod
     def main_menu() -> InlineKeyboardMarkup:
-        """Main menu keyboard."""
+        """Improved main menu keyboard."""
         return InlineKeyboardMarkup([
+            [InlineKeyboardButton("🔄 Convert Image", callback_data="convert")],
             [
-                InlineKeyboardButton("⚙️ Settings", callback_data="settings"),
-                InlineKeyboardButton("📊 Stats", callback_data="stats")
+                InlineKeyboardButton("📊 Statistics", callback_data="stats"),
+                InlineKeyboardButton("⚙️ Settings", callback_data="settings")
             ],
             [
-                InlineKeyboardButton("🔄 Convert", callback_data="convert"),
-                InlineKeyboardButton("❓ Help", callback_data="help")
+                InlineKeyboardButton("❓ Help Center", callback_data="help"),
+                InlineKeyboardButton("👤 Support", callback_data="support")
             ]
         ])
 
     @staticmethod
     def settings_menu(has_api_key: bool = False) -> InlineKeyboardMarkup:
-        """Settings menu keyboard."""
-        buttons = [
-            [
-                InlineKeyboardButton(
-                    "🔑 API Key", 
-                    callback_data="settings_api"
-                )
-            ],
-            [
-                InlineKeyboardButton(
-                    "📋 Default Format", 
-                    callback_data="settings_format"
-                )
-            ],
-            [
-                InlineKeyboardButton(
-                    "🔔 Notifications", 
-                    callback_data="settings_notifications"
-                )
-            ],
-            [
-                InlineKeyboardButton(
-                    "🏠 Back to Menu", 
-                    callback_data="start"
-                )
-            ]
-        ]
-        return InlineKeyboardMarkup(buttons)
+        """Improved settings menu keyboard."""
+        return InlineKeyboardMarkup([
+            [InlineKeyboardButton("🎨 Format Settings", callback_data="settings_format")],
+            [InlineKeyboardButton("🔔 Notification Settings", callback_data="settings_notifications")],
+            [InlineKeyboardButton("🔑 API Configuration", callback_data="settings_api")],
+            [InlineKeyboardButton("↩️ Back to Menu", callback_data="start")]
+        ])
 
     @staticmethod
     def format_selection_settings() -> InlineKeyboardMarkup:
@@ -130,20 +110,28 @@ class Keyboards:
         ])
 
     @staticmethod
-    def format_selection() -> InlineKeyboardMarkup:
-        """Format selection keyboard."""
-        return InlineKeyboardMarkup([
-            [
-                InlineKeyboardButton("JPEG", callback_data="format_jpeg"),
-                InlineKeyboardButton("PNG", callback_data="format_png")
-            ],
-            [
-                InlineKeyboardButton("WEBP", callback_data="format_webp")
-            ],
-            [
-                InlineKeyboardButton("🔙 Back", callback_data="settings")
-            ]
-        ])
+    def format_selection(selected_format: str = None) -> InlineKeyboardMarkup:
+        """Format selection keyboard with selected format indicator."""
+        formats = {
+            "webp": "WebP - Best for Web",
+            "jpeg": "JPEG - Best for Photos",
+            "png": "PNG - Best Quality"
+        }
+        
+        buttons = []
+        for fmt, description in formats.items():
+            text = f"{description} {'✅' if selected_format == fmt else ''}"
+            buttons.append([InlineKeyboardButton(
+                text,
+                callback_data=f"format_{fmt}"
+            )])
+            
+        buttons.append([InlineKeyboardButton(
+            "🔙 Back",
+            callback_data="start"
+        )])
+        
+        return InlineKeyboardMarkup(buttons)
 
     @staticmethod
     def admin_menu() -> InlineKeyboardMarkup:
@@ -151,13 +139,39 @@ class Keyboards:
         return InlineKeyboardMarkup([
             [
                 InlineKeyboardButton("📊 Statistics", callback_data="admin_stats"),
-                InlineKeyboardButton("📢 Broadcast", callback_data="admin_broadcast")
+                InlineKeyboardButton("👥 Users", callback_data="admin_users")
             ],
             [
-                InlineKeyboardButton("👥 Users", callback_data="admin_users"),
+                InlineKeyboardButton("📢 Broadcast", callback_data="admin_broadcast"),
                 InlineKeyboardButton("⚙️ Settings", callback_data="admin_settings")
             ],
             [
-                InlineKeyboardButton("🏠 Main Menu", callback_data="start")
+                InlineKeyboardButton("🔙 Back to Main Menu", callback_data="start")
+            ]
+        ])
+
+    @staticmethod
+    def user_management_menu():
+        """User management menu."""
+        return InlineKeyboardMarkup([
+            [
+                InlineKeyboardButton("🚫 Banned Users", callback_data="admin_banned_users"),
+                InlineKeyboardButton("📊 User Stats", callback_data="admin_user_stats")
+            ],
+            [
+                InlineKeyboardButton("🔙 Back to Admin Menu", callback_data="admin_back")
+            ]
+        ])
+
+    @staticmethod
+    def admin_settings_menu():
+        """Admin settings menu."""
+        return InlineKeyboardMarkup([
+            [
+                InlineKeyboardButton("🔑 API Settings", callback_data="admin_api_settings"),
+                InlineKeyboardButton("⚙️ Bot Settings", callback_data="admin_bot_settings")
+            ],
+            [
+                InlineKeyboardButton("🔙 Back to Admin Menu", callback_data="admin_back")
             ]
         ])

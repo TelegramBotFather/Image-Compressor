@@ -6,6 +6,7 @@ from .helpers import (
     cleanup_old_data
 )
 from .decorators import admin_only, rate_limit, handle_errors
+from .error_handler import handle_error
 
 __all__ = [
     'get_image_info',
@@ -15,5 +16,6 @@ __all__ = [
     'cleanup_old_data',
     'admin_only',
     'rate_limit',
-    'handle_errors'
+    'handle_errors',
+    'handle_error'
 ]

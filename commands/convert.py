@@ -5,6 +5,7 @@ from components.messages import Messages
 from config import ERROR_MESSAGES
 from utils.helpers import get_image_info
 from utils.decorators import rate_limit
+from utils.error_handler import handle_error
 import logging
 from pyrogram.enums import ParseMode
 
@@ -20,8 +21,7 @@ async def convert_command(client: Client, message: Message) -> None:
             parse_mode=ParseMode.HTML
         )
     except Exception as e:
-        logger.error(f"Error in convert command: {str(e)}")
-        await message.reply_text(ERROR_MESSAGES["general_error"])
+        await handle_error(message, e, "Error while processing conversion request")
 
 async def handle_convert_callback(client: Client, callback_query: CallbackQuery) -> None:
     """Handle format selection callbacks."""

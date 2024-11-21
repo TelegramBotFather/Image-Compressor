@@ -5,6 +5,7 @@ from database.user_db import get_user_settings
 from utils.decorators import rate_limit
 import logging
 from pyrogram.enums import ParseMode
+from utils.error_handler import handle_error
 
 logger = logging.getLogger(__name__)
 
@@ -32,5 +33,4 @@ async def settings_command(client: Client, message: Message) -> None:
         )
 
     except Exception as e:
-        logger.error(f"Error in settings command: {str(e)}")
-        await message.reply_text("❌ An error occurred. Please try again.")
+        await handle_error(message, e, "Error accessing settings")

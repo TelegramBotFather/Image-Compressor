@@ -60,3 +60,21 @@ class ChannelLogger:
             await self.client.send_message(self.log_channel, text)
         except Exception as e:
             logger.error(f"Error logging error message: {str(e)}")
+
+    async def log_image_request(self, user_id: int, username: str, message_type: str) -> None:
+        """Log image compression requests."""
+        try:
+            text = (
+                "📥 New Image Request\n"
+                f"User ID: `{user_id}`\n"
+                f"Username: @{username}\n"
+                f"Type: {message_type}\n"
+                f"Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+            )
+            await self.client.send_message(
+                self.log_channel,
+                text,
+                parse_mode=ParseMode.MARKDOWN
+            )
+        except Exception as e:
+            logger.error(f"Error logging image request: {str(e)}")

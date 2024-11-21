@@ -88,8 +88,16 @@ async def cleanup_old_data():
         })
         logger.info(f"Cleaned up {result.deleted_count} old logs")
 
-        # Clean up temporary files
-        await clean_temp_files()
+        # Clean up temporary files in temp directory
+        temp_dir = "temp"
+        file_paths = []
+        for filename in os.listdir(temp_dir):
+            if filename != ".gitkeep":  # Skip .gitkeep file
+                file_path = os.path.join(temp_dir, filename)
+                file_paths.append(file_path)
+        
+        if file_paths:
+            await clean_temp_files(file_paths)
 
     except Exception as e:
         logger.error(f"Error during cleanup: {str(e)}")

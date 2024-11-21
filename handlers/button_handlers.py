@@ -43,7 +43,7 @@ class ButtonHandler:
             logger.error(f"Error in settings handler: {str(e)}")
             raise
 
-    async def handle(self, callback_query: CallbackQuery) -> None:
+    async def handle(self, client: Client, callback_query: CallbackQuery) -> None:
         """Handle callback queries from inline buttons."""
         try:
             data = callback_query.data

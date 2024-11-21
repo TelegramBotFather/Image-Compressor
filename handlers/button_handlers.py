@@ -17,6 +17,43 @@ class ButtonHandler:
         self.client = client
         self.api_handler = APIHandler()
 
+    async def handle(self, client: Client, callback_query: CallbackQuery) -> None:
+        """Handle callback queries from inline buttons."""
+        try:
+            data = callback_query.data
+            user_id = callback_query.from_user.id
+
+            if data == "start":
+                await callback_query.message.edit_text(
+                    Messages.WELCOME,
+                    reply_markup=Keyboards.main_menu(),
+                    parse_mode=ParseMode.HTML
+                )
+            elif data == "settings":
+                await self._handle_settings(callback_query)
+            elif data == "convert":
+                await convert_command(self.client, callback_query.message)
+            elif data == "stats":
+                await usage_stats(self.client, callback_query.message)
+            elif data == "support":
+                await support_command(self.client, callback_query.message)
+            elif data == "help":
+                await callback_query.message.edit_text(
+                    Messages.HELP,
+                    reply_markup=Keyboards.help_menu(),
+                    parse_mode=ParseMode.HTML
+                )
+            elif data.startswith("format_"):
+                await self._handle_format_selection(callback_query)
+            elif data.startswith("settings_"):
+                await self._handle_settings_submenu(callback_query)
+            
+            await callback_query.answer()
+            
+        except Exception as e:
+            logger.error(f"Error handling callback: {str(e)}")
+            await callback_query.answer("❌ An error occurred", show_alert=True)
+
     async def _handle_settings(self, callback_query: CallbackQuery) -> None:
         """Handle settings menu callbacks."""
         try:
@@ -42,52 +79,6 @@ class ButtonHandler:
         except Exception as e:
             logger.error(f"Error in settings handler: {str(e)}")
             raise
-
-    async def handle(self, callback_query: CallbackQuery) -> None:
-        """Handle callback queries from inline buttons."""
-        try:
-            data = callback_query.data
-            user_id = callback_query.from_user.id
-
-            if data == "start":
-                await callback_query.message.edit_text(
-                    Messages.WELCOME,
-                    reply_markup=Keyboards.main_menu(),
-                    parse_mode=ParseMode.HTML
-                )
-            elif data == "settings":
-                await self._handle_settings(callback_query)
-            elif data == "convert":
-                await callback_query.message.edit_text(
-                    Messages.FORMAT_SELECTION,
-                    reply_markup=Keyboards.format_selection(),
-                    parse_mode=ParseMode.HTML
-                )
-            elif data == "stats":
-                await usage_stats(self.client, callback_query.message)
-            elif data == "help":
-                await callback_query.message.edit_text(
-                    Messages.HELP,
-                    reply_markup=Keyboards.help_menu(),
-                    parse_mode=ParseMode.HTML
-                )
-            elif data == "support":
-                await callback_query.message.edit_text(
-                    Messages.SUPPORT,
-                    reply_markup=Keyboards.help_menu(),
-                    parse_mode=ParseMode.HTML
-                )
-            elif data.startswith("format_"):
-                await self._handle_format_selection(callback_query)
-            elif data.startswith("settings_"):
-                await self._handle_settings_submenu(callback_query)
-            
-            # Answer the callback query
-            await callback_query.answer()
-
-        except Exception as e:
-            logger.error(f"Error handling callback: {str(e)}")
-            await callback_query.answer("❌ An error occurred", show_alert=True)
 
     async def _update_settings_message(self, callback_query: CallbackQuery, settings: dict) -> None:
         """Update settings message with current status."""

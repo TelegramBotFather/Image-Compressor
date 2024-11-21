@@ -30,6 +30,7 @@ from config import (
 from database.mongodb import mongodb, db
 from handlers.file_handler import FileHandler
 from handlers.button_handlers import ButtonHandler
+from handlers.url_handler import URLHandler
 from datetime import datetime
 from log_handlers.channel_logger import ChannelLogger
 from components.keyboards import Keyboards
@@ -79,6 +80,7 @@ async def start_bot():
         app.add_handler(MessageHandler(usage_stats, filters.command("stats")))
         app.add_handler(MessageHandler(file_handler.handle, filters.photo | filters.document))
         app.add_handler(CallbackQueryHandler(button_handler.handle))
+        app.add_handler(MessageHandler(url_handler.handle, filters.regex(r'https?://[^\s]+')))
 
         # Start scheduler
         scheduler.start()
@@ -114,6 +116,7 @@ if __name__ == "__main__":
         # Initialize handlers
         file_handler = FileHandler(app)
         button_handler = ButtonHandler(app)
+        url_handler = URLHandler(app)
         
         # Initialize scheduler
         scheduler = AsyncIOScheduler()

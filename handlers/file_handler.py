@@ -11,6 +11,7 @@ import logging
 import time
 from database.user_db import get_user_settings
 from log_handlers.channel_logger import ChannelLogger
+from utils.error_handler import handle_error
 
 logger = logging.getLogger(__name__)
 
@@ -35,8 +36,7 @@ class FileHandler:
             
             # Get file info based on message type
             if message.photo:
-                # Updated photo handling
-                file_id = message.photo[-1].file_id
+                file_id = message.photo.file_id
                 file_name = f"{file_id}.jpg"
                 mime_type = "image/jpeg"
             elif message.document:
@@ -68,7 +68,7 @@ class FileHandler:
 
         except Exception as e:
             logger.error(f"Error handling file: {str(e)}")
-            await message.reply_text(ERROR_MESSAGES["general_error"])
+            await handle_error(message, e)
         finally:
             # Cleanup
             if 'temp_path' in locals():

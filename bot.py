@@ -78,7 +78,7 @@ async def start_bot():
         app.add_handler(MessageHandler(admin_dashboard, filters.command("admin")))
         app.add_handler(MessageHandler(usage_stats, filters.command("stats")))
         app.add_handler(MessageHandler(file_handler.handle, filters.photo | filters.document))
-        app.add_handler(CallbackQueryHandler(button_handler.handle))
+        app.add_handler(CallbackQueryHandler(lambda c, q: button_handler.handle(q)))
 
         # Start scheduler
         scheduler.start()
@@ -116,7 +116,7 @@ if __name__ == "__main__":
         button_handler = ButtonHandler(app)
         
         # Add handlers to the app
-        app.add_handler(CallbackQueryHandler(button_handler.handle))
+        app.add_handler(CallbackQueryHandler(lambda c, q: button_handler.handle(q)))
         
         # Initialize scheduler
         scheduler = AsyncIOScheduler()

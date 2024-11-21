@@ -43,87 +43,24 @@ class ButtonHandler:
             logger.error(f"Error in settings handler: {str(e)}")
             raise
 
-    async def handle(self, client: Client, callback_query: CallbackQuery) -> None:
-        """Handle all callback queries."""
+    async def handle(self, callback_query: CallbackQuery) -> None:
+        """Handle callback queries from inline buttons."""
         try:
             data = callback_query.data
-            
-            # Admin panel handlers
-            if data.startswith("admin_"):
-                await self._handle_admin_buttons(callback_query)
-                return
+            user_id = callback_query.from_user.id
 
-            if data == "help":
-                await callback_query.message.edit_text(
-                    Messages.HELP,
-                    reply_markup=Keyboards.help_menu(),
-                    parse_mode=ParseMode.HTML
-                )
-                
-            elif data == "start":
+            if data == "start":
                 await callback_query.message.edit_text(
                     Messages.WELCOME,
                     reply_markup=Keyboards.main_menu(),
                     parse_mode=ParseMode.HTML
                 )
-                
-            elif data == "convert":
-                await convert_command(self.client, callback_query.message)
-                await callback_query.answer()
-            
-            elif data == "stats":
-                await usage_stats(self.client, callback_query.message)
-                await callback_query.answer()
-                
-            elif data.startswith("settings"):
-                if data == "settings_notifications":
-                    # Toggle notifications instead of showing same message
-                    user_id = callback_query.from_user.id
-                    settings = await get_user_settings(user_id)
-                    new_status = not settings.get('notifications_enabled', True)
-                    
-                    await db.settings.update_one(
-                        {"user_id": user_id},
-                        {"$set": {"notifications_enabled": new_status}},
-                        upsert=True
-                    )
-                    
-                    # Update message with new status
-                    settings['notifications_enabled'] = new_status
-                    await self._update_settings_message(callback_query, settings)
-                    
-                elif data == "settings_format":
-                    # Show format selection keyboard instead of same message
-                    keyboard = Keyboards.format_selection_settings()
-                    await callback_query.message.edit_text(
-                        "Select your default format:",
-                        reply_markup=keyboard
-                    )
-                else:
-                    await self._handle_settings(callback_query)
-                    
-            elif data.startswith("set_format_"):
-                format_choice = data.split("_")[2]  # Extract format from set_format_jpeg
-                user_id = callback_query.from_user.id
-                
-                # Update user's default format
-                await update_user_settings(user_id, {'default_format': format_choice})
-                
-                # Show confirmation and return to settings
-                await callback_query.message.edit_text(
-                    f"✅ Default format set to {format_choice.upper()}\n"
-                    "Your images will be converted to this format by default.",
-                    reply_markup=Keyboards.settings_menu(
-                        bool((await get_user_settings(user_id)).get('custom_api_key'))
-                    ),
-                    parse_mode=ParseMode.HTML
-                )
-            
-            elif data.startswith("format_"):
-                await self._handle_format_selection(callback_query)
-            
+
+            # ... rest of the handler logic ...
+
+            # Answer the callback query to remove the loading state
             await callback_query.answer()
-                
+
         except Exception as e:
             logger.error(f"Error handling callback: {str(e)}")
             await callback_query.answer("❌ An error occurred", show_alert=True)

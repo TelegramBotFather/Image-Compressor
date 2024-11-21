@@ -4,10 +4,10 @@ from components.keyboards import Keyboards
 from api_management.api_handler import APIHandler
 from log_handlers.channel_logger import ChannelLogger
 from utils import (
-    check_rate_limit, 
     download_image, 
     clean_temp_files
 )
+from utils.decorators import rate_limit
 from config import ERROR_MESSAGES
 import logging
 import os
@@ -20,7 +20,8 @@ class URLHandler:
         self.api_handler = APIHandler()
         self.channel_logger = ChannelLogger(client)
 
-    async def handle(self, message: Message) -> None:
+    @rate_limit
+    async def handle(self, client: Client, message: Message) -> None:
         temp_path = None
         compressed_path = None
         try:

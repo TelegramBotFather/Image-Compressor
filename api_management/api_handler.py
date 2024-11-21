@@ -18,6 +18,7 @@ class APIHandler:
     def __init__(self):
         self.api_logger = APILogger()
         self.default_api_key = os.getenv("TINIFY_API_KEY")
+        tinify.key = self.default_api_key  # Initialize the API key
         self._api_cache = {}
 
     async def get_api_key(self, user_id: int) -> str:
@@ -51,6 +52,10 @@ class APIHandler:
         target_format: Optional[str] = None
     ) -> dict:
         try:
+            # Set API key before compression
+            api_key = await self.get_api_key(user_id)
+            tinify.key = api_key or self.default_api_key
+            
             # Compress image
             source = tinify.from_file(input_path)
             if target_format:

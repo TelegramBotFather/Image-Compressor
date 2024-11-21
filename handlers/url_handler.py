@@ -21,7 +21,7 @@ class URLHandler:
         self.channel_logger = ChannelLogger(client)
 
     @rate_limit
-    async def handle(self, message: Message) -> None:
+    async def handle(self, client: Client, message: Message) -> None:
         temp_path = None
         compressed_path = None
         try:

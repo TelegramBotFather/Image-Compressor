@@ -8,6 +8,7 @@ from commands.convert import convert_command
 from commands.stats import usage_stats
 from database.user_db import get_user_settings, update_user_settings
 from api_management.api_handler import APIHandler
+from commands.support import support_command
 import logging
 
 logger = logging.getLogger(__name__)
@@ -101,13 +102,15 @@ class ButtonHandler:
     async def _handle_format_selection(self, callback_query: CallbackQuery) -> None:
         """Handle format selection callbacks."""
         try:
-            format_choice = callback_query.data.split("_")[1]  # format_jpeg -> jpeg
+            format_choice = callback_query.data.split("_")[1]
             user_id = callback_query.from_user.id
             
             await update_user_settings(user_id, {'default_format': format_choice})
-            settings = await get_user_settings(user_id)
             
-            await self._update_settings_message(callback_query, settings)
+            await callback_query.message.edit_text(
+                f"Format set to {format_choice.upper()}\nNow send me an image to compress!",
+                parse_mode=ParseMode.HTML
+            )
             await callback_query.answer(f"Format set to {format_choice.upper()}")
             
         except Exception as e:
@@ -142,56 +145,26 @@ class ButtonHandler:
             data = callback_query.data
             user_id = callback_query.from_user.id
 
-            # Verify admin status
-            if user_id not in ADMIN_IDS:
-                await callback_query.answer("⚠️ Unauthorized access", show_alert=True)
-                return
-
             if data == "admin_stats":
-                # Show detailed statistics
-                from commands.admin_stats import detailed_stats
-                await detailed_stats(self.client, callback_query.message)
-                
+                await usage_stats(self.client, callback_query.message)
             elif data == "admin_users":
-                # Show user management options
-                await callback_query.message.edit_text(
-                    "👥 <b>User Management</b>\n\n"
-                    "Select an action below:",
-                    reply_markup=Keyboards.user_management_menu(),
-                    parse_mode=ParseMode.HTML
-                )
-                
+                # Show user list
+                users = await db.users.find().to_list(length=100)
+                user_text = "👥 **Registered Users**\n\n"
+                for user in users:
+                    user_text += f"• ID: {user['user_id']}\n"
+                    user_text += f"• Username: @{user.get('username', 'None')}\n\n"
+                await callback_query.message.edit_text(user_text)
             elif data == "admin_broadcast":
-                # Show broadcast message input prompt
-                await callback_query.message.edit_text(
-                    "📣 <b>Broadcast Message</b>\n\n"
-                    "Please send the message you want to broadcast to all users.\n"
-                    "Use /cancel to cancel the broadcast.",
-                    parse_mode=ParseMode.HTML
-                )
-                
+                await broadcast_command(self.client, callback_query.message)
             elif data == "admin_settings":
-                # Show admin settings
-                await callback_query.message.edit_text(
-                    "⚙️ <b>Admin Settings</b>\n\n"
-                    "Configure bot settings below:",
-                    reply_markup=Keyboards.admin_settings_menu(),
-                    parse_mode=ParseMode.HTML
-                )
-                
-            elif data == "admin_back":
-                # Return to main admin menu
-                await callback_query.message.edit_text(
-                    "🔧 <b>Admin Dashboard</b>\n\nSelect an option below:",
-                    reply_markup=Keyboards.admin_menu(),
-                    parse_mode=ParseMode.HTML
-                )
+                await settings_command(self.client, callback_query.message)
 
             await callback_query.answer()
 
         except Exception as e:
-            logger.error(f"Error in admin button handler: {str(e)}")
-            await callback_query.answer("❌ An error occurred", show_alert=True)
+            logger.error(f"Error in admin buttons: {str(e)}")
+            await callback_query.answer("❌ Error occurred", show_alert=True)
 
     async def _handle_settings_submenu(self, callback_query: CallbackQuery) -> None:
         """Handle settings submenu callbacks."""

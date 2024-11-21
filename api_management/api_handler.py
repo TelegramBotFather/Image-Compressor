@@ -49,64 +49,33 @@ class APIHandler:
         file_path: str,
         user_id: int,
         target_format: Optional[str] = None
-    ) -> Tuple[bool, Optional[str], Optional[str]]:
-        """
-        Compress an image using the TinyPNG API.
-
-        Args:
-            file_path (str): Path to the original image.
-            user_id (int): The Telegram user ID.
-
-        Returns:
-            Tuple[bool, Optional[str], Optional[str]]: Compression result, path to the compressed image, and error message if any.
-
-        Raises:
-            Exception: If compression fails.
-        """
+    ) -> Tuple[bool, str, dict]:
         try:
-            # Create temp directory if it doesn't exist
-            os.makedirs("temp", exist_ok=True)
+            # Get user's API key if exists
+            api_key = await self.api_settings.get_user_api_key(user_id)
+            if api_key:
+                tinify.key = api_key
             
-            api_key = await self.get_api_key(user_id)
-            tinify.key = api_key
-            
+            # Compress image
             source = tinify.from_file(file_path)
-            
             if target_format:
                 source = source.convert(format=target_format)
             
-            compressed_filename = f"compressed_{datetime.now().timestamp()}.{target_format or 'png'}"
-            compressed_path = os.path.join("temp", compressed_filename)
+            # Save compressed image
+            output_path = f"temp/compressed_{os.path.basename(file_path)}"
+            source.to_file(output_path)
             
-            source.to_file(compressed_path)
+            # Get compression stats
+            stats = {
+                "original_size": os.path.getsize(file_path),
+                "compressed_size": os.path.getsize(output_path)
+            }
             
-            # Update statistics
-            original_size = os.path.getsize(file_path)
-            compressed_size = os.path.getsize(compressed_path)
-            await update_user_stats(user_id, original_size, compressed_size)
+            return True, output_path, stats
             
-            # Log successful API call
-            await self.api_logger.log_api_call(
-                user_id=user_id,
-                api_key=api_key,
-                success=True,
-                response={"compressed_path": compressed_path}
-            )
-            
-            return True, compressed_path, None
-            
-        except tinify.AccountError as e:
-            logger.error(f"Account error: {str(e)}")
-            return False, None, "API key error. Please try again later."
-        except tinify.ClientError as e:
-            logger.error(f"Client error: {str(e)}")
-            return False, None, "Invalid image or format."
-        except tinify.ServerError as e:
-            logger.error(f"Server error: {str(e)}")
-            return False, None, "Service temporarily unavailable."
         except Exception as e:
             logger.error(f"Compression error: {str(e)}")
-            return False, None, "Failed to compress image. Please try again."
+            return False, str(e), {}
 
     async def _get_user_api_key(self, user_id: int) -> Optional[str]:
         """

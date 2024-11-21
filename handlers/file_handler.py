@@ -20,7 +20,7 @@ class FileHandler:
         self.api_handler = APIHandler()
         self.channel_logger = ChannelLogger(client)
 
-    async def handle(self, message: Message) -> None:
+    async def handle(self, client: Client, message: Message) -> None:
         """Handle incoming photo or document messages."""
         try:
             user_id = message.from_user.id

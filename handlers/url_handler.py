@@ -2,7 +2,7 @@ from pyrogram import Client
 from pyrogram.types import Message
 from components.keyboards import Keyboards
 from api_management.api_handler import APIHandler
-from logging.channel_logger import ChannelLogger
+from log_handlers.channel_logger import ChannelLogger
 from utils import (
     check_rate_limit, 
     download_image, 

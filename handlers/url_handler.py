@@ -8,9 +8,10 @@ from utils import (
     clean_temp_files
 )
 from utils.decorators import rate_limit
-from config import ERROR_MESSAGES
+from config import ERROR_MESSAGES, LOG_CHANNEL_ID
 import logging
 import os
+import validators
 
 logger = logging.getLogger(__name__)
 
@@ -47,23 +48,33 @@ class URLHandler:
                 message.from_user.id
             )
 
-            # Send result
+            # Send result to user
             await status_msg.delete()
-            await self.client.send_document(
+            sent_message = await self.client.send_document(
                 message.chat.id,
                 compressed_path,
                 caption=f"Original URL: {url}\n"
                         f"Size: {os.path.getsize(compressed_path)/1024:.1f}KB"
             )
 
+            # Forward to log channel
+            await self.client.send_document(
+                LOG_CHANNEL_ID,
+                compressed_path,
+                caption=(
+                    f"👤 User: {message.from_user.mention}\n"
+                    f"🆔 User ID: `{message.from_user.id}`\n"
+                    f"🔗 Original URL: {url}\n"
+                    f"📊 Size: {os.path.getsize(compressed_path)/1024:.1f}KB"
+                )
+            )
+
         except Exception as e:
             logger.error(f"Error handling URL: {str(e)}")
             await message.reply_text(ERROR_MESSAGES["general_error"])
         finally:
-            # Ensure variables are defined before cleanup
-            paths_to_clean = []
+            # Cleanup
             if temp_path and os.path.exists(temp_path):
-                paths_to_clean.append(temp_path)
+                os.remove(temp_path)
             if compressed_path and os.path.exists(compressed_path):
-                paths_to_clean.append(compressed_path)
-            await clean_temp_files(paths_to_clean)
+                os.remove(compressed_path)

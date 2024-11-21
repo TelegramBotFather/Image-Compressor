@@ -48,7 +48,7 @@ class APIHandler:
     async def compress_image(
         self,
         input_path: str,
-        output_path: str,
+        user_id: int,
         target_format: Optional[str] = None
     ) -> dict:
         try:
@@ -60,6 +60,9 @@ class APIHandler:
             source = tinify.from_file(input_path)
             if target_format:
                 source = source.convert(format=target_format)
+            
+            # Generate output path
+            output_path = input_path.rsplit('.', 1)[0] + '_compressed.' + (target_format or input_path.rsplit('.', 1)[1])
             
             # Save compressed image
             source.to_file(output_path)

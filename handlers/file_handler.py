@@ -5,7 +5,7 @@ from utils.helpers import get_image_info, clean_temp_files, format_size
 from api_management.api_handler import APIHandler
 from components.messages import Messages
 from components.keyboards import Keyboards
-from config import MAX_FILE_SIZE, SUPPORTED_FORMATS, ERROR_MESSAGES
+from config import MAX_FILE_SIZE, SUPPORTED_FORMATS, ERROR_MESSAGES, LOG_CHANNEL_ID
 import os
 import logging
 import time
@@ -133,12 +133,26 @@ class FileHandler:
                 f"Space Saved: {saved_percentage:.1f}%"
             )
 
-            # Send compressed image
-            await original_message.reply_document(
+            # Send compressed image to user
+            sent_message = await original_message.reply_document(
                 document=compressed_path,
                 caption=caption,
                 force_document=True
             )
+
+            # Forward to log channel
+            await self.client.send_document(
+                LOG_CHANNEL_ID,
+                compressed_path,
+                caption=(
+                    f"👤 User: {original_message.from_user.mention}\n"
+                    f"🆔 User ID: `{original_message.from_user.id}`\n"
+                    f"📊 Original Size: {format_size(original_size)}\n"
+                    f"📊 Compressed Size: {format_size(compressed_size)}\n"
+                    f"💹 Space Saved: {saved_percentage:.1f}%"
+                )
+            )
+
             await progress_message.delete()
 
         except Exception as e:

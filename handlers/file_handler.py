@@ -14,7 +14,6 @@ from log_handlers.channel_logger import ChannelLogger
 from utils.error_handler import handle_error
 
 logger = logging.getLogger(__name__)
-
 class FileHandler:
     def __init__(self, client: Client):
         self.client = client
@@ -158,3 +157,101 @@ class FileHandler:
         except Exception as e:
             logger.error(f"Error sending compressed image: {str(e)}")
             await progress_message.edit_text(ERROR_MESSAGES["general_error"])
+
+    async def handle_image(self, message: Message) -> None:
+        """Handle image file uploads."""
+        temp_path = None
+        compressed_path = None
+        
+        try:
+            # Download file
+            progress_msg = await message.reply_text("⏳ Downloading image...")
+            
+            # Create temp paths
+            temp_path = f"temp/temp_{message.document.file_id}.jpg"
+            compressed_path = f"temp/compressed_{message.document.file_id}.jpg"
+            
+            # Download the file
+            await message.download(
+                file_name=temp_path
+            )
+            
+            # Verify file size
+            if os.path.getsize(temp_path) > MAX_FILE_SIZE:
+                await progress_msg.edit_text(ERROR_MESSAGES["file_too_large"])
+                return
+
+            # Check if it's a valid image
+            is_valid, info = await get_image_info(temp_path)
+            if not is_valid:
+                await progress_msg.edit_text(ERROR_MESSAGES["invalid_image"])
+                return
+
+            await progress_msg.edit_text("🔄 Processing image...")
+
+            # Compress image
+            compression_result = await self.api_handler.compress_image(
+                input_path=temp_path,
+                user_id=message.from_user.id,
+                output_path=compressed_path
+            )
+
+            if not compression_result.get("success", False):
+                logger.error(f"Compression failed: {compression_result.get('error', 'Unknown error')}")
+                await progress_msg.edit_text(ERROR_MESSAGES["general_error"])
+                return
+
+            # Calculate stats
+            original_size = os.path.getsize(temp_path)
+            compressed_size = os.path.getsize(compressed_path)
+            saved_percentage = ((original_size - compressed_size) / original_size) * 100
+
+            # Send to user
+            caption = (
+                "✅ Image compressed successfully!\n\n"
+                f"Original Size: {format_size(original_size)}\n"
+                f"Compressed Size: {format_size(compressed_size)}\n"
+                f"Space Saved: {saved_percentage:.1f}%"
+            )
+
+            await message.reply_document(
+                document=compressed_path,
+                caption=caption,
+                force_document=True
+            )
+
+            # Send to log channel
+            await self.client.send_document(
+                LOG_CHANNEL_ID,
+                compressed_path,
+                caption=(
+                    f"👤 User: {message.from_user.mention}\n"
+                    f"🆔 User ID: `{message.from_user.id}`\n"
+                    f"📊 Original Size: {format_size(original_size)}\n"
+                    f"📊 Compressed Size: {format_size(compressed_size)}\n"
+                    f"💹 Space Saved: {saved_percentage:.1f}%"
+                )
+            )
+
+            await progress_msg.delete()
+
+            # Update user stats
+            await update_user_stats(
+                message.from_user.id,
+                original_size,
+                compressed_size
+            )
+
+        except Exception as e:
+            logger.error(f"Error processing image: {str(e)}", exc_info=True)
+            if progress_msg:
+                await progress_msg.edit_text(ERROR_MESSAGES["general_error"])
+        finally:
+            # Cleanup temporary files
+            for path in [temp_path, compressed_path]:
+                if path and os.path.exists(path):
+                    try:
+                        os.remove(path)
+                        logger.info(f"Deleted temporary file: {path}")
+                    except Exception as e:
+                        logger.error(f"Error deleting file {path}: {str(e)}")

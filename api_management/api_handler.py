@@ -49,35 +49,60 @@ class APIHandler:
         self,
         input_path: str,
         user_id: int,
+        output_path: str,
         target_format: Optional[str] = None
     ) -> dict:
+        """
+        Compress an image using TinyPNG API.
+        
+        Args:
+            input_path (str): Path to input image
+            user_id (int): User ID for API key lookup
+            output_path (str): Path to save compressed image
+            target_format (Optional[str]): Target format for conversion
+        
+        Returns:
+            dict: Compression results
+        """
         try:
-            # Set API key before compression
+            # Verify input file exists
+            if not os.path.exists(input_path):
+                return {"success": False, "error": "Input file not found"}
+
+            # Get API key
             api_key = await self.get_api_key(user_id)
             tinify.key = api_key or self.default_api_key
-            
+
+            if not tinify.key:
+                return {"success": False, "error": "No API key available"}
+
             # Compress image
             source = tinify.from_file(input_path)
+            
+            # Convert format if specified
             if target_format:
                 source = source.convert(format=target_format)
-            
-            # Generate output path
-            output_path = input_path.rsplit('.', 1)[0] + '_compressed.' + (target_format or input_path.rsplit('.', 1)[1])
-            
+
             # Save compressed image
             source.to_file(output_path)
-            
+
+            if not os.path.exists(output_path):
+                return {"success": False, "error": "Failed to save compressed image"}
+
             # Get compression stats
-            stats = {
+            original_size = os.path.getsize(input_path)
+            compressed_size = os.path.getsize(output_path)
+
+            return {
                 "success": True,
-                "original_size": os.path.getsize(input_path),
-                "compressed_size": os.path.getsize(output_path)
+                "original_size": original_size,
+                "compressed_size": compressed_size,
+                "saved_bytes": original_size - compressed_size,
+                "saved_percentage": ((original_size - compressed_size) / original_size) * 100
             }
-            
-            return stats
-            
+
         except Exception as e:
-            logger.error(f"Compression error: {str(e)}")
+            logger.error(f"Compression error: {str(e)}", exc_info=True)
             return {"success": False, "error": str(e)}
 
     async def _get_user_api_key(self, user_id: int) -> Optional[str]:

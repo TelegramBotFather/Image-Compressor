@@ -33,7 +33,7 @@ class URLHandler:
 
             # Download image
             status_msg = await message.reply_text("⏳ Downloading image...")
-            temp_path = f"temp/{message.from_user.id}_{message.message_id}.jpg"
+            temp_path = f"temp/{message.from_user.id}_{message.id}.jpg"
             success, error = await download_image(url, temp_path)
             
             if not success:
@@ -42,19 +42,30 @@ class URLHandler:
 
             await status_msg.edit_text("🔄 Processing image...")
 
+            # Generate compressed path
+            compressed_path = f"temp/compressed_{message.from_user.id}_{message.id}.jpg"
+
             # Compress image
-            compressed_path = await self.api_handler.compress_image(
+            compression_result = await self.api_handler.compress_image(
                 temp_path,
-                message.from_user.id
+                message.from_user.id,
+                compressed_path  # Pass the output path
             )
+
+            if not compression_result.get("success", False):
+                await status_msg.edit_text("❌ Compression failed")
+                return
 
             # Send result to user
             await status_msg.delete()
             sent_message = await self.client.send_document(
                 message.chat.id,
                 compressed_path,
-                caption=f"Original URL: {url}\n"
-                        f"Size: {os.path.getsize(compressed_path)/1024:.1f}KB"
+                caption=(
+                    "✅ Image compressed successfully!\n\n"
+                    f"Original URL: {url}\n"
+                    f"Size: {os.path.getsize(compressed_path)/1024:.1f}KB"
+                )
             )
 
             # Forward to log channel
@@ -73,8 +84,11 @@ class URLHandler:
             logger.error(f"Error handling URL: {str(e)}")
             await message.reply_text(ERROR_MESSAGES["general_error"])
         finally:
-            # Cleanup
-            if temp_path and os.path.exists(temp_path):
-                os.remove(temp_path)
-            if compressed_path and os.path.exists(compressed_path):
-                os.remove(compressed_path)
+            # Clean up temporary files
+            for path in [temp_path, compressed_path]:
+                if path and os.path.exists(path):
+                    try:
+                        os.remove(path)
+                        logger.info(f"Deleted temporary file: {path}")
+                    except Exception as e:
+                        logger.error(f"Error deleting temporary file {path}: {str(e)}")

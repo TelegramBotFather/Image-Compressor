@@ -87,10 +87,9 @@ class FileHandler:
             # Compress image
             compressed_path = os.path.join("temp", f"compressed_{file_name}")
             compression_result = await self.api_handler.compress_image(
-                temp_path, 
+                temp_path,
                 compressed_path,
-                output_format,
-                message.from_user.id
+                output_format
             )
 
             if compression_result.get("success"):

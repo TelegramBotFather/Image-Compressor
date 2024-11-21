@@ -25,6 +25,9 @@ def rate_limit(func: Callable) -> Callable:
     
     @wraps(func)
     async def wrapper(client: Client, message: Message, *args: Any, **kwargs: Any) -> Any:
+        if not isinstance(message, Message):
+            return await func(client, message, *args, **kwargs)
+            
         user_id = message.from_user.id
         current_time = datetime.now()
         

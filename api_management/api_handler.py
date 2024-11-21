@@ -46,36 +46,31 @@ class APIHandler:
 
     async def compress_image(
         self,
-        file_path: str,
-        user_id: int,
+        input_path: str,
+        output_path: str,
         target_format: Optional[str] = None
-    ) -> Tuple[bool, str, dict]:
+    ) -> dict:
         try:
-            # Get user's API key if exists
-            api_key = await self.api_settings.get_user_api_key(user_id)
-            if api_key:
-                tinify.key = api_key
-            
             # Compress image
-            source = tinify.from_file(file_path)
+            source = tinify.from_file(input_path)
             if target_format:
                 source = source.convert(format=target_format)
             
             # Save compressed image
-            output_path = f"temp/compressed_{os.path.basename(file_path)}"
             source.to_file(output_path)
             
             # Get compression stats
             stats = {
-                "original_size": os.path.getsize(file_path),
+                "success": True,
+                "original_size": os.path.getsize(input_path),
                 "compressed_size": os.path.getsize(output_path)
             }
             
-            return True, output_path, stats
+            return stats
             
         except Exception as e:
             logger.error(f"Compression error: {str(e)}")
-            return False, str(e), {}
+            return {"success": False, "error": str(e)}
 
     async def _get_user_api_key(self, user_id: int) -> Optional[str]:
         """

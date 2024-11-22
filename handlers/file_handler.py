@@ -3,7 +3,7 @@ from pyrogram.types import Message
 from api_management.api_handler import APIHandler
 from utils.helpers import get_image_info, format_size
 from config import MAX_FILE_SIZE, ERROR_MESSAGES, LOG_CHANNEL_ID
-from database.user_db import update_user_stats
+from database.mongodb import db
 import os
 import logging
 
@@ -15,24 +15,20 @@ class FileHandler:
         self.api_handler = APIHandler()
 
     async def handle(self, client: Client, message: Message) -> None:
-        """Handle incoming photo or document messages."""
         temp_path = None
         compressed_path = None
         progress_message = None
         
         try:
             user_id = message.from_user.id
-            username = message.from_user.username or "No username"
             
             # Get file info based on message type
             if message.photo:
                 file_id = message.photo.file_id
                 file_name = f"{file_id}.jpg"
-                mime_type = "image/jpeg"
             elif message.document:
                 file_id = message.document.file_id
                 file_name = message.document.file_name
-                mime_type = message.document.mime_type
             else:
                 await message.reply_text(ERROR_MESSAGES["invalid_format"])
                 return
@@ -46,22 +42,15 @@ class FileHandler:
                 await message.download(temp_path)
             except Exception as e:
                 logger.error(f"Error downloading file: {str(e)}")
-                if progress_message and not progress_message.empty:
-                    await progress_message.edit_text(ERROR_MESSAGES["general_error"])
+                await progress_message.edit_text(ERROR_MESSAGES["general_error"])
                 return
-
-            # Verify file size
-            if os.path.getsize(temp_path) > MAX_FILE_SIZE:
-                if progress_message and not progress_message.empty:
-                    await progress_message.edit_text(ERROR_MESSAGES["file_too_large"])
-                return
-
-            if progress_message and not progress_message.empty:
-                await progress_message.edit_text("🔄 Processing image...")
 
             # Get user's format preference
             user_settings = await db.settings.find_one({"user_id": user_id})
             target_format = user_settings.get("current_format") if user_settings else None
+
+            if progress_message:
+                await progress_message.edit_text("🔄 Processing image...")
 
             # Compress image
             compression_result = await self.api_handler.compress_image(
@@ -72,11 +61,11 @@ class FileHandler:
             )
 
             if not compression_result.get("success", False):
-                if progress_message and not progress_message.empty:
+                if progress_message:
                     await progress_message.edit_text(ERROR_MESSAGES["general_error"])
                 return
 
-            # Update the compressed_path if format changed
+            # Update compressed_path if format changed
             if target_format:
                 compressed_path = compressed_path.rsplit('.', 1)[0] + f'.{target_format}'
 
@@ -85,7 +74,7 @@ class FileHandler:
             compressed_size = os.path.getsize(compressed_path)
             saved_percentage = ((original_size - compressed_size) / original_size) * 100
 
-            # Send to user
+            # Prepare caption
             caption = (
                 "✅ Image compressed successfully!\n\n"
                 f"Original Size: {format_size(original_size)}\n"
@@ -96,14 +85,14 @@ class FileHandler:
             if compression_result.get("format"):
                 caption += f"\nFormat: {compression_result['format'].upper()}"
 
-            # Send document to user
+            # Send to user
             await message.reply_document(
                 document=compressed_path,
                 caption=caption,
                 force_document=True
             )
 
-            # Forward to log channel
+            # Send to log channel
             await self.client.send_document(
                 LOG_CHANNEL_ID,
                 document=compressed_path,
@@ -116,31 +105,16 @@ class FileHandler:
                 )
             )
 
-            # Try to delete progress message
-            try:
-                if progress_message and not progress_message.empty:
-                    await progress_message.delete()
-            except Exception as e:
-                logger.error(f"Error deleting progress message: {str(e)}")
-
-            # Update user stats
-            try:
-                await update_user_stats(
-                    user_id,
-                    original_size,
-                    compressed_size
-                )
-            except Exception as e:
-                logger.error(f"Error updating user stats: {str(e)}")
+            if progress_message:
+                await progress_message.delete()
 
         except Exception as e:
             logger.error(f"Error handling file: {str(e)}")
-            try:
-                if progress_message and not progress_message.empty:
+            if progress_message:
+                try:
                     await progress_message.edit_text(ERROR_MESSAGES["general_error"])
-            except Exception as edit_error:
-                logger.error(f"Error editing progress message: {str(edit_error)}")
-                
+                except Exception:
+                    pass
         finally:
             # Cleanup temporary files
             for path in [temp_path, compressed_path]:

@@ -1,29 +1,25 @@
 from pyrogram import Client
 from pyrogram.types import Message
-from pyrogram.enums import ParseMode
-from utils.helpers import get_image_info, clean_temp_files, format_size
 from api_management.api_handler import APIHandler
-from components.messages import Messages
-from components.keyboards import Keyboards
-from config import MAX_FILE_SIZE, SUPPORTED_FORMATS, ERROR_MESSAGES, LOG_CHANNEL_ID
+from utils.helpers import get_image_info, format_size
+from config import MAX_FILE_SIZE, ERROR_MESSAGES, LOG_CHANNEL_ID
+from database.user_db import update_user_stats
 import os
 import logging
-import time
-from database.user_db import get_user_settings
-from log_handlers.channel_logger import ChannelLogger
-from utils.error_handler import handle_error
 
 logger = logging.getLogger(__name__)
+
 class FileHandler:
     def __init__(self, client: Client):
         self.client = client
         self.api_handler = APIHandler()
-        self.channel_logger = ChannelLogger(client)
 
     async def handle(self, client: Client, message: Message) -> None:
         """Handle incoming photo or document messages."""
         temp_path = None
         compressed_path = None
+        progress_message = None
+        
         try:
             user_id = message.from_user.id
             username = message.from_user.username or "No username"
@@ -50,15 +46,18 @@ class FileHandler:
                 await message.download(temp_path)
             except Exception as e:
                 logger.error(f"Error downloading file: {str(e)}")
-                await progress_message.edit_text(ERROR_MESSAGES["general_error"])
+                if progress_message and not progress_message.empty:
+                    await progress_message.edit_text(ERROR_MESSAGES["general_error"])
                 return
 
             # Verify file size
             if os.path.getsize(temp_path) > MAX_FILE_SIZE:
-                await progress_message.edit_text(ERROR_MESSAGES["file_too_large"])
+                if progress_message and not progress_message.empty:
+                    await progress_message.edit_text(ERROR_MESSAGES["file_too_large"])
                 return
 
-            await progress_message.edit_text("🔄 Processing image...")
+            if progress_message and not progress_message.empty:
+                await progress_message.edit_text("🔄 Processing image...")
 
             # Compress image
             compression_result = await self.api_handler.compress_image(
@@ -68,7 +67,8 @@ class FileHandler:
             )
 
             if not compression_result.get("success", False):
-                await progress_message.edit_text(ERROR_MESSAGES["general_error"])
+                if progress_message and not progress_message.empty:
+                    await progress_message.edit_text(ERROR_MESSAGES["general_error"])
                 return
 
             # Calculate stats
@@ -91,7 +91,7 @@ class FileHandler:
                 force_document=True
             )
 
-            # Forward the actual file to log channel
+            # Forward to log channel
             await self.client.send_document(
                 LOG_CHANNEL_ID,
                 document=compressed_path,
@@ -104,19 +104,31 @@ class FileHandler:
                 )
             )
 
-            await progress_message.delete()
+            # Try to delete progress message
+            try:
+                if progress_message and not progress_message.empty:
+                    await progress_message.delete()
+            except Exception as e:
+                logger.error(f"Error deleting progress message: {str(e)}")
 
             # Update user stats
-            await update_user_stats(
-                user_id,
-                original_size,
-                compressed_size
-            )
+            try:
+                await update_user_stats(
+                    user_id,
+                    original_size,
+                    compressed_size
+                )
+            except Exception as e:
+                logger.error(f"Error updating user stats: {str(e)}")
 
         except Exception as e:
             logger.error(f"Error handling file: {str(e)}")
-            if 'progress_message' in locals():
-                await progress_message.edit_text(ERROR_MESSAGES["general_error"])
+            try:
+                if progress_message and not progress_message.empty:
+                    await progress_message.edit_text(ERROR_MESSAGES["general_error"])
+            except Exception as edit_error:
+                logger.error(f"Error editing progress message: {str(edit_error)}")
+                
         finally:
             # Cleanup temporary files
             for path in [temp_path, compressed_path]:

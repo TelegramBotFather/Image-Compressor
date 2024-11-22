@@ -112,12 +112,12 @@ async def update_user_stats(
                     "total_compressions": 1,
                     "total_size_saved": size_saved
                 },
-                "$set": {"last_active": datetime.utcnow()}
+                "$set": {"last_active": datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")}
             }
         )
         
-        # Update daily stats
-        today = datetime.utcnow().date()
+        # Update daily stats with proper date format
+        today = datetime.utcnow().strftime("%Y-%m-%d")
         await db.usage_stats.update_one(
             {
                 "user_id": user_id,

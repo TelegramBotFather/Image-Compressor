@@ -59,17 +59,26 @@ class FileHandler:
             if progress_message and not progress_message.empty:
                 await progress_message.edit_text("🔄 Processing image...")
 
+            # Get user's format preference
+            user_settings = await db.settings.find_one({"user_id": user_id})
+            target_format = user_settings.get("current_format") if user_settings else None
+
             # Compress image
             compression_result = await self.api_handler.compress_image(
                 input_path=temp_path,
                 user_id=user_id,
-                output_path=compressed_path
+                output_path=compressed_path,
+                target_format=target_format
             )
 
             if not compression_result.get("success", False):
                 if progress_message and not progress_message.empty:
                     await progress_message.edit_text(ERROR_MESSAGES["general_error"])
                 return
+
+            # Update the compressed_path if format changed
+            if target_format:
+                compressed_path = compressed_path.rsplit('.', 1)[0] + f'.{target_format}'
 
             # Calculate stats
             original_size = os.path.getsize(temp_path)
@@ -83,6 +92,9 @@ class FileHandler:
                 f"Compressed Size: {format_size(compressed_size)}\n"
                 f"Space Saved: {saved_percentage:.1f}%"
             )
+
+            if compression_result.get("format"):
+                caption += f"\nFormat: {compression_result['format'].upper()}"
 
             # Send document to user
             await message.reply_document(

@@ -76,25 +76,26 @@ class APIHandler:
             if not tinify.key:
                 return {"success": False, "error": "No API key available"}
 
-            # Get user's format preference
-            user_settings = await db.settings.find_one({"user_id": user_id})
-            target_format = user_settings.get("current_format") if user_settings else None
-
             # Compress image
             source = tinify.from_file(input_path)
             
             # Handle format conversion
             if target_format:
                 if target_format == "webp":
-                    # For WebP, we need to specify additional parameters
                     source = source.convert({
-                        "type": ["image/webp"],
-                        "quality": 80
+                        "type": ["image/webp"]
                     })
-                    # Ensure output path has .webp extension
-                    output_path = output_path.rsplit('.', 1)[0] + '.webp'
-                else:
-                    source = source.convert(format=target_format)
+                elif target_format == "png":
+                    source = source.convert({
+                        "type": ["image/png"]
+                    })
+                elif target_format == "jpg" or target_format == "jpeg":
+                    source = source.convert({
+                        "type": ["image/jpeg"]
+                    })
+
+                # Update output path with correct extension
+                output_path = output_path.rsplit('.', 1)[0] + f'.{target_format}'
 
             # Save compressed image
             source.to_file(output_path)
@@ -110,8 +111,6 @@ class APIHandler:
                 "success": True,
                 "original_size": original_size,
                 "compressed_size": compressed_size,
-                "saved_bytes": original_size - compressed_size,
-                "saved_percentage": ((original_size - compressed_size) / original_size) * 100,
                 "format": target_format if target_format else "original"
             }
 

@@ -8,13 +8,14 @@ from commands.stats import usage_stats
 from database.user_db import get_user_settings, update_user_settings
 from api_management.api_handler import APIHandler
 from commands.support import support_command
+from api_management import APISettings
 import logging
 
 logger = logging.getLogger(__name__)
 class ButtonHandler:
-    def __init__(self, client: Client):
+    def __init__(self, client: Client, api_settings: APISettings):
         self.client = client
-        self.api_settings = APISettings()
+        self.api_settings = api_settings
         self._waiting_for_api = set()
 
     async def handle(self, client: Client, callback_query: CallbackQuery) -> None:

@@ -8,7 +8,7 @@ import tinify
 from utils import clean_temp_files, cleanup_old_data
 from utils.decorators import rate_limit
 from api_management.api_handler import APIHandler
-from api_management.api_settings import APISettings
+from api_management import APISettings
 from commands import (
     start_command,
     admin_dashboard,
@@ -114,9 +114,10 @@ if __name__ == "__main__":
             bot_token=os.getenv("BOT_TOKEN")
         )
         
-        # Initialize handlers
+        # Initialize handlers and components
+        api_settings = APISettings(app)
         file_handler = FileHandler(app)
-        button_handler = ButtonHandler(app)
+        button_handler = ButtonHandler(app, api_settings)
         url_handler = URLHandler(app)
         
         # Initialize scheduler

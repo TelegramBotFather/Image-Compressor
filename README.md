@@ -6,17 +6,7 @@
 
 ## ✨ Features
 
-- 🖼️ **Smart Compression**
-  - Maintain quality while reducing size
-  - Support for files up to 5MB
-  - Multiple format support (JPEG, PNG, WebP)
-
-- 🔄 **Format Conversion**
-  - Convert between popular formats
-  - Preserve image quality
-  - Smart format recommendations
-
-- 📊 **Usage Tracking**
+- 🔄 **Usage Tracking**
   - Personal statistics
   - Compression history
   - Data savings metrics
@@ -44,11 +34,6 @@
 2. **URL Compression**
    - Send an image URL
    - Bot downloads, compresses, and returns the image
-
-3. **Format Conversion**
-   - Use `/convert` command
-   - Select target format
-   - Send image for conversion
 
 ## ⚙️ Advanced Configuration
 

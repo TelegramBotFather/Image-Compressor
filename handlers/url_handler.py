@@ -38,13 +38,9 @@ class URLHandler:
                 await message.reply_text(ERROR_MESSAGES["invalid_url"])
                 return
 
-            # Get user's format preference
-            user_settings = await db.settings.find_one({"user_id": message.from_user.id})
-            target_format = user_settings.get("current_format", "jpeg")
-
             # Download image
             status_msg = await message.reply_text("⏳ Downloading image...")
-            temp_path = f"temp/{message.from_user.id}_{message.id}.{target_format}"
+            temp_path = f"temp/{message.from_user.id}_{message.id}"
             success, error = await download_image(url, temp_path)
             
             if not success:
@@ -53,30 +49,25 @@ class URLHandler:
 
             await status_msg.edit_text("🔄 Processing image...")
 
-            # Generate compressed path with correct extension
-            compressed_path = f"temp/compressed_{message.from_user.id}_{message.id}.{target_format}"
+            # Generate compressed path
+            compressed_path = f"temp/compressed_{message.from_user.id}_{message.id}"
 
             # Compress image
             compression_result = await self.api_handler.compress_image(
                 temp_path,
                 message.from_user.id,
-                compressed_path,
-                target_format=target_format
+                compressed_path
             )
 
             if not compression_result.get("success", False):
                 await status_msg.edit_text("❌ Compression failed")
                 return
 
-            # Send as document to preserve format
+            # Send compressed image
             await self.client.send_document(
                 message.chat.id,
                 compressed_path,
-                caption=(
-                    f"✅ Image compressed and converted to {target_format.upper()}\n"
-                    f"Original URL: {url}\n"
-                    f"Size: {os.path.getsize(compressed_path)/1024:.1f}KB"
-                ),
+                caption=f"✅ Image compressed successfully!\nOriginal URL: {url}",
                 force_document=True
             )
 

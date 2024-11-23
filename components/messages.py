@@ -7,16 +7,9 @@ from config import FORMAT_DESCRIPTIONS
 class Messages:
     # Welcome messages
     WELCOME = (
-        "👋 <b>Welcome to Image Compressor Bot!</b>\n\n"
-        "I'm your professional image compression assistant. I can help you:\n"
-        "• Compress images while maintaining quality\n"
-        "• Convert between different formats (WEBP, JPEG, PNG)\n"
-        "• Save storage space and bandwidth\n\n"
-        "🔍 <b>Quick Start:</b>\n"
-        "1️⃣ Just send me any image\n"
-        "2️⃣ Use /convert to change formats\n"
-        "3️⃣ Use /settings to customize\n\n"
-        "🎯 <b>Pro Tip:</b> Try WEBP format for the best compression!"
+        "👋 Welcome to Image Compressor Bot!\n\n"
+        "Send me any image to compress it while maintaining quality.\n"
+        "You can also send an image URL and I'll compress it for you."
     )
 
     HELP = (
@@ -24,7 +17,6 @@ class Messages:
         "<b>Basic Commands:</b>\n"
         "• /start - Restart the bot\n"
         "• /help - Show this help message\n"
-        "• /convert - Change image format\n"
         "• /settings - Bot settings\n"
         "• /stats - View your usage stats\n\n"
         "<b>How to Use:</b>\n"
@@ -58,29 +50,6 @@ class Messages:
 
     SUCCESS = "✅ Image processed successfully!"
     RATE_LIMIT = "⚠️ Please wait before sending another image."
-
-    FORMAT_SELECTION = """
-    🎨 <b>Format Selection</b>
-
-    Choose your preferred format:
-
-    📱 <b>WEBP</b>
-    • Smallest file size
-    • Best for web/apps
-    • Supports animation
-
-    📸 <b>JPEG</b>
-    • Great for photos
-    • Wide compatibility
-    • Balanced quality
-
-    🎨 <b>PNG</b>
-    • Lossless quality
-    • Supports transparency
-    • Best for graphics
-
-    <i>Tip: WEBP usually gives the best compression!</i>
-    """
 
     SUPPORT = (
         "💬 <b>Support & Contact</b>\n\n"

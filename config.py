@@ -22,12 +22,6 @@ if not LOG_CHANNEL_ID:
 # File Configuration
 MAX_FILE_SIZE = 5 * 1024 * 1024  # 5MB
 SUPPORTED_FORMATS = {'.webp', '.jpeg', '.jpg', '.png'}
-CONVERSION_FORMATS = ["webp", "jpeg", "png"]
-FORMAT_DESCRIPTIONS = {
-    "webp": "Best for web images (smallest size)",
-    "jpeg": "Best for photos (good quality/size balance)",
-    "png": "Best for images with transparency (highest quality)"
-}
 
 # Rate Limiting
 RATE_LIMIT_SECONDS = 5

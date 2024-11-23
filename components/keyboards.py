@@ -110,30 +110,6 @@ class Keyboards:
         ])
 
     @staticmethod
-    def format_selection(selected_format: str = None) -> InlineKeyboardMarkup:
-        """Format selection keyboard with selected format indicator."""
-        formats = {
-            "webp": "WebP - Best for Web",
-            "jpeg": "JPEG - Best for Photos",
-            "png": "PNG - Best Quality"
-        }
-        
-        buttons = []
-        for fmt, description in formats.items():
-            text = f"{description} {'✅' if selected_format == fmt else ''}"
-            buttons.append([InlineKeyboardButton(
-                text,
-                callback_data=f"format_{fmt}"
-            )])
-            
-        buttons.append([InlineKeyboardButton(
-            "🔙 Back",
-            callback_data="start"
-        )])
-        
-        return InlineKeyboardMarkup(buttons)
-
-    @staticmethod
     def admin_menu() -> InlineKeyboardMarkup:
         """Admin menu keyboard."""
         return InlineKeyboardMarkup([

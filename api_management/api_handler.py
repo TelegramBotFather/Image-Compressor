@@ -49,8 +49,7 @@ class APIHandler:
         self,
         input_path: str,
         user_id: int,
-        output_path: str,
-        target_format: Optional[str] = None
+        output_path: str
     ) -> dict:
         """
         Compress an image using TinyPNG API.
@@ -59,7 +58,6 @@ class APIHandler:
             input_path (str): Path to input image
             user_id (int): User ID for API key lookup
             output_path (str): Path to save compressed image
-            target_format (Optional[str]): Target format for conversion
         
         Returns:
             dict: Compression results
@@ -78,17 +76,6 @@ class APIHandler:
 
             # Compress image
             source = tinify.from_file(input_path)
-            
-            # Handle format conversion
-            if target_format:
-                if target_format == "webp":
-                    source = source.convert(type=["image/webp"])
-                elif target_format == "png":
-                    source = source.convert(type=["image/png"])
-                elif target_format == "jpg" or target_format == "jpeg":
-                    source = source.convert(type=["image/jpeg"])
-
-            # Save compressed image
             source.to_file(output_path)
 
             if not os.path.exists(output_path):
@@ -97,8 +84,7 @@ class APIHandler:
             return {
                 "success": True,
                 "original_size": os.path.getsize(input_path),
-                "compressed_size": os.path.getsize(output_path),
-                "format": target_format if target_format else "original"
+                "compressed_size": os.path.getsize(output_path)
             }
 
         except Exception as e:

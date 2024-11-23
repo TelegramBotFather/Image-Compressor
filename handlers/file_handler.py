@@ -31,7 +31,7 @@ class FileHandler:
             # Get file info based on message type
             if message.photo:
                 file_id = message.photo.file_id
-                file_name = f"{file_id}"
+                file_name = f"{file_id}.jpg"
             elif message.document:
                 file_id = message.document.file_id
                 file_name = message.document.file_name
@@ -39,13 +39,9 @@ class FileHandler:
                 await message.reply_text(ERROR_MESSAGES["invalid_format"])
                 return
 
-            # Get user's format preference
-            user_settings = await db.settings.find_one({"user_id": user_id})
-            target_format = user_settings.get("current_format", "jpeg")
-
-            # Set proper file extension based on target format
-            temp_path = f"temp/temp_{file_id}.{target_format}"
-            compressed_path = f"temp/compressed_{file_id}.{target_format}"
+            # Set paths
+            temp_path = f"temp/{file_name}"
+            compressed_path = f"temp/compressed_{file_name}"
 
             # Download file
             progress_message = await message.reply_text("⏳ Downloading file...")
@@ -58,8 +54,7 @@ class FileHandler:
             compression_result = await self.api_handler.compress_image(
                 input_path=temp_path,
                 user_id=user_id,
-                output_path=compressed_path,
-                target_format=target_format
+                output_path=compressed_path
             )
 
             if not compression_result.get("success", False):
@@ -67,10 +62,10 @@ class FileHandler:
                     await progress_message.edit_text(ERROR_MESSAGES["general_error"])
                 return
 
-            # Send as document to preserve format
+            # Send compressed image
             await message.reply_document(
                 document=compressed_path,
-                caption=f"✅ Image compressed and converted to {target_format.upper()}",
+                caption="✅ Image compressed successfully!",
                 force_document=True
             )
 

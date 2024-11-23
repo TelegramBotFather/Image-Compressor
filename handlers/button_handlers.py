@@ -97,21 +97,7 @@ class ButtonHandler:
             settings_text,
             reply_markup=Keyboards.settings_menu(bool(settings.get('custom_api_key'))),
             parse_mode=ParseMode.HTML
-        )
-
-    async def _handle_format_selection(self, callback_query: CallbackQuery) -> None:
-        """Handle format selection callbacks."""
-        try:
-            format_choice = callback_query.data.split("_")[1]
-            user_id = callback_query.from_user.id
-            
-            await update_user_settings(user_id, {'default_format': format_choice})
-            
-            await callback_query.message.edit_text(
-                f"Format set to {format_choice.upper()}\nNow send me an image to compress!",
-                parse_mode=ParseMode.HTML
-            )
-            await callback_query.answer(f"Format set to {format_choice.upper()}")
+        ) 
             
         except Exception as e:
             logger.error(f"Error in format selection: {str(e)}")

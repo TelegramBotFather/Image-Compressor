@@ -20,7 +20,7 @@ def admin_only(func: Callable) -> Callable:
     return wrapper
 
 def rate_limit(func: Callable) -> Callable:
-    """Rate limiting decorator."""
+    """Rate limiting decorator with memory management."""
     last_called = {}
     
     @wraps(func)
@@ -30,6 +30,11 @@ def rate_limit(func: Callable) -> Callable:
             
         user_id = message.from_user.id
         current_time = datetime.now()
+        
+        # Cleanup old entries
+        for uid in list(last_called.keys()):
+            if (current_time - last_called[uid]).total_seconds() > RATE_LIMIT_SECONDS * 2:
+                del last_called[uid]
         
         if user_id in last_called:
             time_passed = (current_time - last_called[user_id]).total_seconds()

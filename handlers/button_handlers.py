@@ -4,7 +4,6 @@ from pyrogram.enums import ParseMode
 from database.mongodb import db
 from components.keyboards import Keyboards
 from components.messages import Messages
-from commands.convert import convert_command
 from commands.stats import usage_stats
 from database.user_db import get_user_settings, update_user_settings
 from api_management.api_handler import APIHandler

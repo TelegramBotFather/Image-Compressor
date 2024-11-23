@@ -5,9 +5,9 @@ import logging
 logger = logging.getLogger(__name__)
 
 async def handle_error(message: Message, error: Exception, error_message: str = None) -> None:
-    """Simplified error handler."""
+    """Centralized error handler with user-friendly messages."""
     try:
-        error_text = "❌ Error: " + (error_message or "Please try again")
+        error_text = "❌ Error: " + (error_message or str(error))
         
         keyboard = InlineKeyboardMarkup([
             [
@@ -25,4 +25,4 @@ async def handle_error(message: Message, error: Exception, error_message: str = 
         logger.error(f"Error: {str(error)}", exc_info=True)
         
     except Exception as e:
-        logger.error(f"Error in error handler: {str(e)}")
+        logger.error(f"Error in error handler: {str(e)}", exc_info=True)

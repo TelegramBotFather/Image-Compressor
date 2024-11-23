@@ -66,3 +66,20 @@ async def cleanup_old_data():
 
     except Exception as e:
         logger.error(f"Error during cleanup: {str(e)}")
+
+def get_image_info(file_path: str) -> Optional[Tuple[str, int, int]]:
+    """
+    Get image format and dimensions.
+    
+    Args:
+        file_path (str): Path to image file
+        
+    Returns:
+        Optional[Tuple[str, int, int]]: Format, width, height or None if error
+    """
+    try:
+        with Image.open(file_path) as img:
+            return img.format.lower(), img.width, img.height
+    except Exception as e:
+        logger.error(f"Error getting image info: {str(e)}")
+        return None

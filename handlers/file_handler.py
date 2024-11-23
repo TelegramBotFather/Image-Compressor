@@ -13,7 +13,6 @@ class FileHandler:
     def __init__(self, client: Client):
         self.client = client
         self.api_handler = APIHandler()
-
     async def handle(self, client: Client, message: Message) -> None:
         temp_path = None
         compressed_path = None
@@ -76,3 +75,4 @@ class FileHandler:
             logger.error(f"Error handling file: {str(e)}")
             if progress_message:
                 await progress_message.edit_text(ERROR_MESSAGES["general_error"])
+

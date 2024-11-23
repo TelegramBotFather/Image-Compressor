@@ -83,3 +83,29 @@ def get_image_info(file_path: str) -> Optional[Tuple[str, int, int]]:
     except Exception as e:
         logger.error(f"Error getting image info: {str(e)}")
         return None
+
+async def download_image(url: str, output_path: str) -> tuple[bool, str]:
+    """
+    Download an image from a URL.
+    
+    Args:
+        url (str): URL of the image to download
+        output_path (str): Path to save the downloaded image
+        
+    Returns:
+        tuple[bool, str]: (Success status, Error message if any)
+    """
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url) as response:
+                if response.status != 200:
+                    return False, f"HTTP error {response.status}"
+                
+                async with aiofiles.open(output_path, 'wb') as f:
+                    await f.write(await response.read())
+                    
+        return True, ""
+        
+    except Exception as e:
+        logger.error(f"Error downloading image: {str(e)}")
+        return False, str(e)

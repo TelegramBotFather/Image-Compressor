@@ -9,9 +9,8 @@ class Keyboards:
     def main_menu() -> InlineKeyboardMarkup:
         """Improved main menu keyboard."""
         return InlineKeyboardMarkup([
-            [InlineKeyboardButton("🔄 Convert Image", callback_data="convert")],
+            [InlineKeyboardButton("📊 Statistics", callback_data="stats"),
             [
-                InlineKeyboardButton("📊 Statistics", callback_data="stats"),
                 InlineKeyboardButton("⚙️ Settings", callback_data="settings")
             ],
             [
@@ -31,20 +30,6 @@ class Keyboards:
         ])
 
     @staticmethod
-    def format_selection_settings() -> InlineKeyboardMarkup:
-        """Format selection keyboard for settings."""
-        return InlineKeyboardMarkup([
-            [
-                InlineKeyboardButton("WEBP", callback_data="set_format_webp"),
-                InlineKeyboardButton("JPEG", callback_data="set_format_jpeg"),
-                InlineKeyboardButton("PNG", callback_data="set_format_png")
-            ],
-            [
-                InlineKeyboardButton("🔙 Back to Settings", callback_data="settings")
-            ]
-        ])
-
-    @staticmethod
     def api_key_settings(has_api_key: bool) -> InlineKeyboardMarkup:
         """API key settings keyboard."""
         buttons = [
@@ -60,7 +45,6 @@ class Keyboards:
             ]
         ]
         return InlineKeyboardMarkup(buttons)
-
     @staticmethod
     def confirmation_keyboard(action: str) -> InlineKeyboardMarkup:
         """Generic confirmation keyboard."""
@@ -151,3 +135,4 @@ class Keyboards:
                 InlineKeyboardButton("🔙 Back to Admin Menu", callback_data="admin_back")
             ]
         ])
+

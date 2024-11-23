@@ -13,7 +13,6 @@ from commands import (
     start_command,
     admin_dashboard,
     usage_stats,
-    convert_command,
     broadcast_command,
     ban_user,
     unban_user,
@@ -74,7 +73,6 @@ async def start_bot():
         app.add_handler(MessageHandler(start_command, filters.command("start")))
         app.add_handler(MessageHandler(support_command, filters.command("help")))
         app.add_handler(MessageHandler(settings_command, filters.command("settings")))
-        app.add_handler(MessageHandler(convert_command, filters.command("convert")))
         app.add_handler(MessageHandler(broadcast_command, filters.command("broadcast")))
         app.add_handler(MessageHandler(ban_user, filters.command("ban")))
         app.add_handler(MessageHandler(unban_user, filters.command("unban")))

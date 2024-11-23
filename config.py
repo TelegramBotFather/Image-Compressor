@@ -21,7 +21,7 @@ if not LOG_CHANNEL_ID:
 
 # File Configuration
 MAX_FILE_SIZE = 5 * 1024 * 1024  # 5MB
-SUPPORTED_FORMATS = {'.webp', '.jpeg', '.jpg', '.png'}
+SUPPORTED_FORMATS = {'.jpeg', '.jpg', '.png'}
 
 # Rate Limiting
 RATE_LIMIT_SECONDS = 5
@@ -32,7 +32,7 @@ RATE_LIMIT_CLEANUP_HOURS = 1
 ERROR_MESSAGES = {
     "rate_limit": "⚠️ Please wait a few seconds before trying again!",
     "file_too_large": "⚠️ File too large! Maximum size is 5MB",
-    "invalid_format": "⚠️ Unsupported file format. Supported formats: JPEG, PNG, WebP",
+    "invalid_format": "⚠️ Unsupported file format. Supported formats: JPEG, PNG",
     "invalid_image": "⚠️ Invalid image file.",
     "invalid_url": "⚠️ Invalid URL format. Please send a valid image URL.",
     "general_error": "❌ An error occurred while processing your request."

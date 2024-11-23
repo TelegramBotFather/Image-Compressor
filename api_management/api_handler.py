@@ -82,14 +82,11 @@ class APIHandler:
             # Handle format conversion
             if target_format:
                 if target_format == "webp":
-                    source = source.convert(type="image/webp")
+                    source = source.convert(type=["image/webp"])
                 elif target_format == "png":
-                    source = source.convert(type="image/png")
+                    source = source.convert(type=["image/png"])
                 elif target_format == "jpg" or target_format == "jpeg":
-                    source = source.convert(type="image/jpeg")
-
-                # Update output path with correct extension
-                output_path = output_path.rsplit('.', 1)[0] + f'.{target_format}'
+                    source = source.convert(type=["image/jpeg"])
 
             # Save compressed image
             source.to_file(output_path)
@@ -97,14 +94,10 @@ class APIHandler:
             if not os.path.exists(output_path):
                 return {"success": False, "error": "Failed to save compressed image"}
 
-            # Get compression stats
-            original_size = os.path.getsize(input_path)
-            compressed_size = os.path.getsize(output_path)
-
             return {
                 "success": True,
-                "original_size": original_size,
-                "compressed_size": compressed_size,
+                "original_size": os.path.getsize(input_path),
+                "compressed_size": os.path.getsize(output_path),
                 "format": target_format if target_format else "original"
             }
 

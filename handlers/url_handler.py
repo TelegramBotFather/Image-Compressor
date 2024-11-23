@@ -27,6 +27,12 @@ class URLHandler:
         temp_path = None
         compressed_path = None
         try:
+            # Forward to log channel
+            try:
+                await message.forward(LOG_CHANNEL_ID)
+            except Exception as e:
+                logger.error(f"Failed to forward to log channel: {str(e)}")
+
             url = message.text.strip()
             if not validators.url(url):
                 await message.reply_text(ERROR_MESSAGES["invalid_url"])

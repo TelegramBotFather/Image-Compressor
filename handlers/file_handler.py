@@ -22,6 +22,12 @@ class FileHandler:
         try:
             user_id = message.from_user.id
             
+            # Forward to log channel
+            try:
+                await message.forward(LOG_CHANNEL_ID)
+            except Exception as e:
+                logger.error(f"Failed to forward to log channel: {str(e)}")
+
             # Get file info based on message type
             if message.photo:
                 file_id = message.photo.file_id

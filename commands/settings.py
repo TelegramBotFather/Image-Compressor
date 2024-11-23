@@ -17,13 +17,8 @@ async def settings_command(client: Client, message: Message) -> None:
         settings = await get_user_settings(user_id)
 
         settings_text = (
-            "⚙️ <b>Bot Settings</b>\n\n"
-            "Configure your preferences:\n\n"
-            "🔑 <b>API Settings</b>\n"
-            f"├ Custom API: {'✅ Enabled' if settings.get('custom_api_key') else '❌ Disabled'}\n"
-            f"└ Default Format: {settings.get('default_format', 'JPEG').upper()}\n\n"
-            "🔔 <b>Notifications</b>\n"
-            f"└ Status: {'✅ Enabled' if settings.get('notifications_enabled') else '❌ Disabled'}"
+            "⚙️ <b>Settings</b>\n\n"
+            f"API Key: {'✅' if settings.get('custom_api_key') else '❌'}"
         )
 
         await message.reply_text(

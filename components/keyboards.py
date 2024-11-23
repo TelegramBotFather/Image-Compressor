@@ -6,41 +6,34 @@ class Keyboards:
     
     @staticmethod
     def main_menu() -> InlineKeyboardMarkup:
-        """Improved main menu keyboard."""
+        """Simple main menu keyboard."""
         buttons = [
-            [InlineKeyboardButton("📊 Statistics", callback_data="stats")],
+            [InlineKeyboardButton("📊 Stats", callback_data="stats")],
             [InlineKeyboardButton("⚙️ Settings", callback_data="settings")],
-            [
-                InlineKeyboardButton("❓ Help Center", callback_data="help"),
-                InlineKeyboardButton("👤 Support", callback_data="support")
-            ]
+            [InlineKeyboardButton("❓ Help", callback_data="help")]
         ]
         return InlineKeyboardMarkup(buttons)
 
     @staticmethod
     def settings_menu(has_api_key: bool = False) -> InlineKeyboardMarkup:
-        """Improved settings menu keyboard."""
+        """Simple settings menu keyboard."""
         buttons = [
-            [InlineKeyboardButton("🔔 Notification Settings", callback_data="settings_notifications")],
-            [InlineKeyboardButton("🔑 API Configuration", callback_data="settings_api")],
-            [InlineKeyboardButton("↩️ Back to Menu", callback_data="start")]
+            [InlineKeyboardButton("🔑 API Key", callback_data="settings_api")],
+            [InlineKeyboardButton("« Back", callback_data="start")]
         ]
         return InlineKeyboardMarkup(buttons)
 
     @staticmethod
     def api_key_settings(has_api_key: bool) -> InlineKeyboardMarkup:
-        """API key settings keyboard."""
+        """Simple API key settings keyboard."""
         buttons = [
             [
                 InlineKeyboardButton(
-                    "🗑 Remove API Key" if has_api_key else "➕ Add API Key",
+                    "Remove Key" if has_api_key else "Add Key",
                     callback_data="api_key_toggle"
                 )
             ],
-            [
-                InlineKeyboardButton("⬅️ Back", callback_data="settings"),
-                InlineKeyboardButton("🏠 Main Menu", callback_data="start")
-            ]
+            [InlineKeyboardButton("« Back", callback_data="settings")]
         ]
         return InlineKeyboardMarkup(buttons)
 

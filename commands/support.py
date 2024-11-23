@@ -20,11 +20,11 @@ async def support_command(client: Client, message: Message) -> None:
         
         keyboard = InlineKeyboardMarkup([
             [
-                InlineKeyboardButton("📞 Support Group", url="https://t.me/YourSupportGroup"),
-                InlineKeyboardButton("👨‍💻 Developer", url="https://t.me/YourUsername")
+                InlineKeyboardButton("📞 Support Group", url="https://t.me/supportgroup"),
+                InlineKeyboardButton("👨‍💻 Developer", url="https://t.me/MatinBhai")
             ],
             [
-                InlineKeyboardButton("📢 Updates Channel", url="https://t.me/YourChannel")
+                InlineKeyboardButton("📢 Updates Channel", url="https://t.me/Matiz_Tech")
             ],
             [InlineKeyboardButton("🏠 Back to Menu", callback_data="start")]
         ])

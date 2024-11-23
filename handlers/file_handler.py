@@ -25,7 +25,7 @@ class FileHandler:
             # Get file info based on message type
             if message.photo:
                 file_id = message.photo.file_id
-                file_name = f"{file_id}.jpg"
+                file_name = f"{file_id}"
             elif message.document:
                 file_id = message.document.file_id
                 file_name = message.document.file_name
@@ -33,21 +33,17 @@ class FileHandler:
                 await message.reply_text(ERROR_MESSAGES["invalid_format"])
                 return
 
-            # Download file
-            progress_message = await message.reply_text("⏳ Downloading file...")
-            temp_path = f"temp/temp_{file_id}.jpg"
-            compressed_path = f"temp/compressed_{file_id}.jpg"
-
-            try:
-                await message.download(temp_path)
-            except Exception as e:
-                logger.error(f"Error downloading file: {str(e)}")
-                await progress_message.edit_text(ERROR_MESSAGES["general_error"])
-                return
-
             # Get user's format preference
             user_settings = await db.settings.find_one({"user_id": user_id})
-            target_format = user_settings.get("current_format") if user_settings else None
+            target_format = user_settings.get("current_format", "jpeg")
+
+            # Set proper file extension based on target format
+            temp_path = f"temp/temp_{file_id}.{target_format}"
+            compressed_path = f"temp/compressed_{file_id}.{target_format}"
+
+            # Download file
+            progress_message = await message.reply_text("⏳ Downloading file...")
+            await message.download(temp_path)
 
             if progress_message:
                 await progress_message.edit_text("🔄 Processing image...")
@@ -65,44 +61,11 @@ class FileHandler:
                     await progress_message.edit_text(ERROR_MESSAGES["general_error"])
                 return
 
-            # Update compressed_path if format changed
-            if target_format:
-                compressed_path = compressed_path.rsplit('.', 1)[0] + f'.{target_format}'
-
-            # Calculate stats
-            original_size = os.path.getsize(temp_path)
-            compressed_size = os.path.getsize(compressed_path)
-            saved_percentage = ((original_size - compressed_size) / original_size) * 100
-
-            # Prepare caption
-            caption = (
-                "✅ Image compressed successfully!\n\n"
-                f"Original Size: {format_size(original_size)}\n"
-                f"Compressed Size: {format_size(compressed_size)}\n"
-                f"Space Saved: {saved_percentage:.1f}%"
-            )
-
-            if compression_result.get("format"):
-                caption += f"\nFormat: {compression_result['format'].upper()}"
-
-            # Send to user
+            # Send as document to preserve format
             await message.reply_document(
                 document=compressed_path,
-                caption=caption,
+                caption=f"✅ Image compressed and converted to {target_format.upper()}",
                 force_document=True
-            )
-
-            # Send to log channel
-            await self.client.send_document(
-                LOG_CHANNEL_ID,
-                document=compressed_path,
-                caption=(
-                    f"👤 User: {message.from_user.mention}\n"
-                    f"🆔 User ID: `{message.from_user.id}`\n"
-                    f"📊 Original Size: {format_size(original_size)}\n"
-                    f"📊 Compressed Size: {format_size(compressed_size)}\n"
-                    f"💹 Space Saved: {saved_percentage:.1f}%"
-                )
             )
 
             if progress_message:
@@ -111,16 +74,4 @@ class FileHandler:
         except Exception as e:
             logger.error(f"Error handling file: {str(e)}")
             if progress_message:
-                try:
-                    await progress_message.edit_text(ERROR_MESSAGES["general_error"])
-                except Exception:
-                    pass
-        finally:
-            # Cleanup temporary files
-            for path in [temp_path, compressed_path]:
-                if path and os.path.exists(path):
-                    try:
-                        os.remove(path)
-                        logger.info(f"Deleted temporary file: {path}")
-                    except Exception as e:
-                        logger.error(f"Error deleting file {path}: {str(e)}")
+                await progress_message.edit_text(ERROR_MESSAGES["general_error"])

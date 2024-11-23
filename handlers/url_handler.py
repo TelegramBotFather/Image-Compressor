@@ -31,9 +31,13 @@ class URLHandler:
                 await message.reply_text(ERROR_MESSAGES["invalid_url"])
                 return
 
+            # Get user's format preference
+            user_settings = await db.settings.find_one({"user_id": message.from_user.id})
+            target_format = user_settings.get("current_format", "jpeg")
+
             # Download image
             status_msg = await message.reply_text("⏳ Downloading image...")
-            temp_path = f"temp/{message.from_user.id}_{message.id}.jpg"
+            temp_path = f"temp/{message.from_user.id}_{message.id}.{target_format}"
             success, error = await download_image(url, temp_path)
             
             if not success:
@@ -42,43 +46,34 @@ class URLHandler:
 
             await status_msg.edit_text("🔄 Processing image...")
 
-            # Generate compressed path
-            compressed_path = f"temp/compressed_{message.from_user.id}_{message.id}.jpg"
+            # Generate compressed path with correct extension
+            compressed_path = f"temp/compressed_{message.from_user.id}_{message.id}.{target_format}"
 
             # Compress image
             compression_result = await self.api_handler.compress_image(
                 temp_path,
                 message.from_user.id,
-                compressed_path  # Pass the output path
+                compressed_path,
+                target_format=target_format
             )
 
             if not compression_result.get("success", False):
                 await status_msg.edit_text("❌ Compression failed")
                 return
 
-            # Send result to user
-            await status_msg.delete()
-            sent_message = await self.client.send_document(
+            # Send as document to preserve format
+            await self.client.send_document(
                 message.chat.id,
                 compressed_path,
                 caption=(
-                    "✅ Image compressed successfully!\n\n"
+                    f"✅ Image compressed and converted to {target_format.upper()}\n"
                     f"Original URL: {url}\n"
                     f"Size: {os.path.getsize(compressed_path)/1024:.1f}KB"
-                )
+                ),
+                force_document=True
             )
 
-            # Forward to log channel
-            await self.client.send_document(
-                LOG_CHANNEL_ID,
-                compressed_path,
-                caption=(
-                    f"👤 User: {message.from_user.mention}\n"
-                    f"🆔 User ID: `{message.from_user.id}`\n"
-                    f"🔗 Original URL: {url}\n"
-                    f"📊 Size: {os.path.getsize(compressed_path)/1024:.1f}KB"
-                )
-            )
+            await status_msg.delete()
 
         except Exception as e:
             logger.error(f"Error handling URL: {str(e)}")
@@ -89,6 +84,5 @@ class URLHandler:
                 if path and os.path.exists(path):
                     try:
                         os.remove(path)
-                        logger.info(f"Deleted temporary file: {path}")
                     except Exception as e:
-                        logger.error(f"Error deleting temporary file {path}: {str(e)}")
+                        logger.error(f"Error deleting file {path}: {str(e)}")

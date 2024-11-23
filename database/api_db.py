@@ -101,3 +101,20 @@ async def save_api_log(log_data: Dict[str, Any]) -> bool:
     except Exception as e:
         logger.error(f"Error saving API log: {str(e)}")
         return False
+
+async def remove_api_key(user_id: int) -> bool:
+    """
+    Remove user's API key.
+    
+    Args:
+        user_id (int): The Telegram user ID
+        
+    Returns:
+        bool: True if key was removed, False otherwise
+    """
+    try:
+        result = await db.api_keys.delete_one({"user_id": user_id})
+        return bool(result.deleted_count)
+    except Exception as e:
+        logger.error(f"Error removing API key: {str(e)}")
+        return False

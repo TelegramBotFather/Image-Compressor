@@ -11,59 +11,119 @@ from commands.support import support_command
 import logging
 
 logger = logging.getLogger(__name__)
-
 class ButtonHandler:
     def __init__(self, client: Client):
         self.client = client
+        self.api_settings = APISettings()
+        self._waiting_for_api = set()
 
-    async def handle_callback(self, client: Client, callback_query: CallbackQuery) -> None:
-        """Handle callback queries."""
+    async def handle(self, client: Client, callback_query: CallbackQuery) -> None:
+        """Handle callback queries from inline buttons."""
         try:
             data = callback_query.data
             
-            if data.startswith("settings_"):
-                await self._handle_settings(callback_query)
-            elif data.startswith("api_key_"):
-                await self._handle_api_key(callback_query)
+            # Map callback data to handler methods
+            handlers = {
+                "stats": self._handle_stats,
+                "settings": self._handle_settings,
+                "help": self._handle_help,
+                "start": self._handle_start,
+                "settings_api": self._handle_api_key,
+                "api_key_toggle": self._handle_api_key_toggle,
+                "support": self._handle_support,
+                "retry": self._handle_retry
+            }
             
+            # Get the appropriate handler
+            handler = handlers.get(data)
+            if handler:
+                await handler(callback_query)
+                # Answer callback query to remove loading state
+                await callback_query.answer()
+            else:
+                logger.warning(f"Unknown callback data: {data}")
+                await callback_query.answer("⚠️ Invalid button", show_alert=True)
+                
         except Exception as e:
             logger.error(f"Error handling callback: {str(e)}")
             await callback_query.answer("❌ An error occurred", show_alert=True)
 
-    async def _handle_settings(self, callback_query: CallbackQuery) -> None:
-        """Handle settings menu callbacks."""
+    async def _handle_stats(self, callback_query: CallbackQuery) -> None:
+        """Handle stats button."""
         try:
-            action = callback_query.data.split("_")[1]
+            user_id = callback_query.from_user.id
+            stats = await get_user_api_stats(user_id)
             
-            if action == "api":
-                await self._handle_api_key(callback_query)
-            elif action == "stats":
-                await self._show_stats(callback_query)
-            elif action == "close":
-                await callback_query.message.delete()
+            await callback_query.message.edit_text(
+                Messages.get_stats(stats),
+                reply_markup=Keyboards.main_menu(),
+                parse_mode=ParseMode.HTML
+            )
+        except Exception as e:
+            logger.error(f"Error in stats handler: {str(e)}")
+            raise
+
+    async def _handle_settings(self, callback_query: CallbackQuery) -> None:
+        """Handle settings button."""
+        try:
+            user_id = callback_query.from_user.id
+            settings = await get_user_settings(user_id)
             
+            await callback_query.message.edit_text(
+                "⚙️ <b>Settings</b>\n\n"
+                f"API Key: {'✅' if settings.get('custom_api_key') else '❌'}",
+                reply_markup=Keyboards.settings_menu(bool(settings.get('custom_api_key'))),
+                parse_mode=ParseMode.HTML
+            )
         except Exception as e:
             logger.error(f"Error in settings handler: {str(e)}")
             raise
 
-    async def _handle_api_key(self, callback_query: CallbackQuery) -> None:
-        """Handle API key related callbacks."""
+    async def _handle_help(self, callback_query: CallbackQuery) -> None:
+        """Handle help button."""
         try:
-            user_id = callback_query.from_user.id
-            settings = await get_user_settings(user_id)
-            has_api_key = bool(settings.get('custom_api_key'))
-            
-            api_settings_text = (
-                "🔑 <b>API Key Settings</b>\n\n"
-                f"Status: {'✅ Custom API Key Set' if has_api_key else '❌ No Custom API Key'}\n\n"
-                "You can add your own TinyPNG API key for better rate limits."
-            )
-            
             await callback_query.message.edit_text(
-                api_settings_text,
-                reply_markup=Keyboards.api_key_settings(has_api_key),
+                Messages.HELP,
+                reply_markup=Keyboards.main_menu(),
                 parse_mode=ParseMode.HTML
             )
         except Exception as e:
-            logger.error(f"Error in API key handler: {str(e)}")
+            logger.error(f"Error in help handler: {str(e)}")
             raise
+
+    async def _handle_start(self, callback_query: CallbackQuery) -> None:
+        """Handle start button (return to main menu)."""
+        try:
+            await callback_query.message.edit_text(
+                Messages.WELCOME,
+                reply_markup=Keyboards.main_menu(),
+                parse_mode=ParseMode.HTML
+            )
+        except Exception as e:
+            logger.error(f"Error in start handler: {str(e)}")
+            raise
+
+    async def _handle_support(self, callback_query: CallbackQuery) -> None:
+        """Handle support button."""
+        try:
+            await callback_query.message.edit_text(
+                "📞 <b>Support</b>\n\n"
+                "If you need help or want to report an issue, "
+                "please contact our support team:\n"
+                "@YourSupportUsername",
+                reply_markup=Keyboards.main_menu(),
+                parse_mode=ParseMode.HTML
+            )
+        except Exception as e:
+            logger.error(f"Error in support handler: {str(e)}")
+            raise
+
+    async def _handle_retry(self, callback_query: CallbackQuery) -> None:
+        """Handle retry button."""
+        try:
+            # Simply delete the error message to let user try again
+            await callback_query.message.delete()
+        except Exception as e:
+            logger.error(f"Error in retry handler: {str(e)}")
+            raise
+

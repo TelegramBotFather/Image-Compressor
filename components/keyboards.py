@@ -8,24 +8,25 @@ class Keyboards:
     @staticmethod
     def main_menu() -> InlineKeyboardMarkup:
         """Improved main menu keyboard."""
-        return InlineKeyboardMarkup([
+        buttons = [
             [InlineKeyboardButton("📊 Statistics", callback_data="stats")],
             [InlineKeyboardButton("⚙️ Settings", callback_data="settings")],
             [
                 InlineKeyboardButton("❓ Help Center", callback_data="help"),
                 InlineKeyboardButton("👤 Support", callback_data="support")
             ]
-        ])
+        ]
+        return InlineKeyboardMarkup(buttons)
 
     @staticmethod
     def settings_menu(has_api_key: bool = False) -> InlineKeyboardMarkup:
         """Improved settings menu keyboard."""
-        return InlineKeyboardMarkup([
-            [InlineKeyboardButton("🎨 Format Settings", callback_data="settings_format")],
+        buttons = [
             [InlineKeyboardButton("🔔 Notification Settings", callback_data="settings_notifications")],
             [InlineKeyboardButton("🔑 API Configuration", callback_data="settings_api")],
             [InlineKeyboardButton("↩️ Back to Menu", callback_data="start")]
-        ])
+        ]
+        return InlineKeyboardMarkup(buttons)
 
     @staticmethod
     def api_key_settings(has_api_key: bool) -> InlineKeyboardMarkup:
@@ -43,6 +44,7 @@ class Keyboards:
             ]
         ]
         return InlineKeyboardMarkup(buttons)
+
     @staticmethod
     def confirmation_keyboard(action: str) -> InlineKeyboardMarkup:
         """Generic confirmation keyboard."""

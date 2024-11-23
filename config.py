@@ -21,7 +21,7 @@ if not LOG_CHANNEL_ID:
 
 # File Configuration
 MAX_FILE_SIZE = 5 * 1024 * 1024  # 5MB
-SUPPORTED_FORMATS = {'.jpeg', '.jpg', '.png'}
+SUPPORTED_FORMATS = {'.jpg', '.jpeg', '.png'}
 
 # Rate Limiting
 RATE_LIMIT_SECONDS = 5

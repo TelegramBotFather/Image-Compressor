@@ -1,6 +1,5 @@
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from typing import List, Optional
-from config import CONVERSION_FORMATS
 
 class Keyboards:
     """Class to manage all keyboard markups for the bot."""

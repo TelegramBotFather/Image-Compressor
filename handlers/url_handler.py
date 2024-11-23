@@ -12,6 +12,7 @@ from config import ERROR_MESSAGES, LOG_CHANNEL_ID
 import logging
 import os
 import validators
+from database.mongodb import db
 
 logger = logging.getLogger(__name__)
 

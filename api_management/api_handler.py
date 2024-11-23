@@ -82,17 +82,11 @@ class APIHandler:
             # Handle format conversion
             if target_format:
                 if target_format == "webp":
-                    source = source.convert({
-                        "type": ["image/webp"]
-                    })
+                    source = source.convert(format="webp")
                 elif target_format == "png":
-                    source = source.convert({
-                        "type": ["image/png"]
-                    })
+                    source = source.convert(format="png")
                 elif target_format == "jpg" or target_format == "jpeg":
-                    source = source.convert({
-                        "type": ["image/jpeg"]
-                    })
+                    source = source.convert(format="jpeg")
 
                 # Update output path with correct extension
                 output_path = output_path.rsplit('.', 1)[0] + f'.{target_format}'

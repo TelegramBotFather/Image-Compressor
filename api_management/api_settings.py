@@ -111,3 +111,15 @@ class APISettings:
         except Exception as e:
             logger.error(f"Error removing API key: {str(e)}")
             await message.reply_text("❌ An error occurred")
+
+    def is_waiting_for_api(self, user_id: int) -> bool:
+        """Check if user is in API key input mode."""
+        return user_id in self._waiting_for_api
+
+    def add_waiting_user(self, user_id: int) -> None:
+        """Add user to API key input waiting list."""
+        self._waiting_for_api.add(user_id)
+
+    def remove_waiting_user(self, user_id: int) -> None:
+        """Remove user from API key input waiting list."""
+        self._waiting_for_api.discard(user_id)

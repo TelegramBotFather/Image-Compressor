@@ -9,10 +9,8 @@ class Keyboards:
     def main_menu() -> InlineKeyboardMarkup:
         """Improved main menu keyboard."""
         return InlineKeyboardMarkup([
-            [InlineKeyboardButton("📊 Statistics", callback_data="stats"),
-            [
-                InlineKeyboardButton("⚙️ Settings", callback_data="settings")
-            ],
+            [InlineKeyboardButton("📊 Statistics", callback_data="stats")],
+            [InlineKeyboardButton("⚙️ Settings", callback_data="settings")],
             [
                 InlineKeyboardButton("❓ Help Center", callback_data="help"),
                 InlineKeyboardButton("👤 Support", callback_data="support")

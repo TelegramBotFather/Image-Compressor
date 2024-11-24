@@ -6,10 +6,11 @@ class Keyboards:
     
     @staticmethod
     def main_menu() -> InlineKeyboardMarkup:
-        """Simple main menu keyboard."""
+        """Main menu keyboard."""
         buttons = [
-            [InlineKeyboardButton("📊 Stats", callback_data="stats")],
+            [InlineKeyboardButton("📊 My Stats", callback_data="stats")],
             [InlineKeyboardButton("⚙️ Settings", callback_data="settings")],
+            [InlineKeyboardButton("📞 Support", callback_data="support")],
             [InlineKeyboardButton("❓ Help", callback_data="help")]
         ]
         return InlineKeyboardMarkup(buttons)

@@ -128,3 +128,23 @@ class ButtonHandler:
             logger.error(f"Error in retry handler: {str(e)}")
             raise
 
+    async def _handle_api_key(self, callback_query: CallbackQuery) -> None:
+        """Handle API key settings button."""
+        try:
+            user_id = callback_query.from_user.id
+            settings = await get_user_settings(user_id)
+            
+            await callback_query.message.edit_text(
+                "🔑 <b>API Key Settings</b>\n\n"
+                "With a custom API key:\n"
+                "• Higher daily limits\n"
+                "• Priority processing\n"
+                "• Usage statistics\n\n"
+                "Get your API key from tinypng.com",
+                reply_markup=Keyboards.api_key_settings(bool(settings.get('custom_api_key'))),
+                parse_mode=ParseMode.HTML
+            )
+        except Exception as e:
+            logger.error(f"Error in API key handler: {str(e)}")
+            raise
+

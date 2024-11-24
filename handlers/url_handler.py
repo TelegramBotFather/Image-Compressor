@@ -14,6 +14,7 @@ import os
 import validators
 from database.mongodb import db
 from utils.helpers import is_valid_image_file
+from utils.validators import is_valid_image_url
 
 logger = logging.getLogger(__name__)
 

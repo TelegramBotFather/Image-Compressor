@@ -63,34 +63,6 @@ class ButtonHandler:
             logger.error(f"Error in stats handler: {str(e)}")
             raise
 
-    async def _handle_settings(self, callback_query: CallbackQuery) -> None:
-        """Handle settings button."""
-        try:
-            user_id = callback_query.from_user.id
-            settings = await get_user_settings(user_id)
-            
-            await callback_query.message.edit_text(
-                "⚙️ <b>Settings</b>\n\n"
-                f"API Key: {'✅' if settings.get('custom_api_key') else '❌'}",
-                reply_markup=Keyboards.settings_menu(bool(settings.get('custom_api_key'))),
-                parse_mode=ParseMode.HTML
-            )
-        except Exception as e:
-            logger.error(f"Error in settings handler: {str(e)}")
-            raise
-
-    async def _handle_help(self, callback_query: CallbackQuery) -> None:
-        """Handle help button."""
-        try:
-            await callback_query.message.edit_text(
-                Messages.HELP,
-                reply_markup=Keyboards.main_menu(),
-                parse_mode=ParseMode.HTML
-            )
-        except Exception as e:
-            logger.error(f"Error in help handler: {str(e)}")
-            raise
-
     async def _handle_start(self, callback_query: CallbackQuery) -> None:
         """Handle start button (return to main menu)."""
         try:

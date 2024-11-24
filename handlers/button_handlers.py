@@ -115,3 +115,26 @@ class ButtonHandler:
             logger.error(f"Error in admin bot settings handler: {str(e)}")
             raise
 
+    async def _handle_admin_api_settings(self, callback_query: CallbackQuery) -> None:
+        """Handle admin API settings button."""
+        try:
+            # Get API settings stats
+            total_api_users = await db.api_keys.count_documents({})
+            total_api_calls = await db.api_logs.count_documents({})
+            
+            settings_text = (
+                "🔧 <b>API Settings Overview</b>\n\n"
+                f"👥 Users with API Keys: {total_api_users}\n"
+                f"📊 Total API Calls: {total_api_calls}\n\n"
+                "Select an option below to manage API settings."
+            )
+            
+            await callback_query.message.edit_text(
+                settings_text,
+                reply_markup=Keyboards.admin_settings_menu(),
+                parse_mode=ParseMode.HTML
+            )
+        except Exception as e:
+            logger.error(f"Error in admin API settings handler: {str(e)}")
+            raise
+

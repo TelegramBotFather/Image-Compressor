@@ -9,9 +9,8 @@ class Keyboards:
         """Main menu keyboard."""
         buttons = [
             [InlineKeyboardButton("📊 My Stats", callback_data="stats")],
-            [InlineKeyboardButton("⚙️ Settings", callback_data="settings")],
-            [InlineKeyboardButton("📞 Support", callback_data="support")],
-            [InlineKeyboardButton("❓ Help", callback_data="help")]
+            [InlineKeyboardButton("🔑 API Key", callback_data="settings_api")],
+            [InlineKeyboardButton("📞 Support", callback_data="support")]
         ]
         return InlineKeyboardMarkup(buttons)
 
@@ -26,7 +25,7 @@ class Keyboards:
 
     @staticmethod
     def api_key_settings(has_api_key: bool) -> InlineKeyboardMarkup:
-        """Simple API key settings keyboard."""
+        """API key settings keyboard."""
         buttons = [
             [
                 InlineKeyboardButton(
@@ -34,7 +33,7 @@ class Keyboards:
                     callback_data="api_key_toggle"
                 )
             ],
-            [InlineKeyboardButton("« Back", callback_data="settings")]
+            [InlineKeyboardButton("🏠 Back to Menu", callback_data="start")]
         ]
         return InlineKeyboardMarkup(buttons)
 
@@ -48,43 +47,6 @@ class Keyboards:
             ]
         ])
 
-    @staticmethod
-    def help_menu() -> InlineKeyboardMarkup:
-        """Help menu keyboard."""
-        return InlineKeyboardMarkup([
-            [
-                InlineKeyboardButton(
-                    "📱 Contact Support",
-                    url="https://t.me/YourSupportUsername"
-                )
-            ],
-            [
-                InlineKeyboardButton(
-                    "📖 Commands List",
-                    callback_data="help_commands"
-                )
-            ],
-            [
-                InlineKeyboardButton("🏠 Back to Menu", callback_data="start")
-            ]
-        ])
-
-    @staticmethod
-    def admin_panel() -> InlineKeyboardMarkup:
-        """Admin panel keyboard."""
-        return InlineKeyboardMarkup([
-            [
-                InlineKeyboardButton("📊 Statistics", callback_data="admin_stats"),
-                InlineKeyboardButton("📢 Broadcast", callback_data="admin_broadcast")
-            ],
-            [
-                InlineKeyboardButton("👥 Users", callback_data="admin_users"),
-                InlineKeyboardButton("⚙️ Settings", callback_data="admin_settings")
-            ],
-            [
-                InlineKeyboardButton("🏠 Main Menu", callback_data="start")
-            ]
-        ])
 
     @staticmethod
     def admin_menu() -> InlineKeyboardMarkup:
@@ -126,5 +88,12 @@ class Keyboards:
             [
                 InlineKeyboardButton("🔙 Back to Admin Menu", callback_data="admin_back")
             ]
+        ])
+
+    @staticmethod
+    def stats_menu() -> InlineKeyboardMarkup:
+        """Stats menu keyboard."""
+        return InlineKeyboardMarkup([
+            [InlineKeyboardButton("🏠 Back to Menu", callback_data="start")]
         ])
 

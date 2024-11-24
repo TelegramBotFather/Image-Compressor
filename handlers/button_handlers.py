@@ -57,7 +57,7 @@ class ButtonHandler:
             
             await callback_query.message.edit_text(
                 Messages.get_stats(stats),
-                reply_markup=Keyboards.main_menu(),
+                reply_markup=Keyboards.stats_menu(),
                 parse_mode=ParseMode.HTML
             )
         except Exception as e:
@@ -160,7 +160,7 @@ class ButtonHandler:
                 await update_user_settings(user_id, {'custom_api_key': None})
                 await callback_query.message.edit_text(
                     "🔑 API key removed successfully!",
-                    reply_markup=Keyboards.settings_menu(False),
+                    reply_markup=Keyboards.api_key_settings(False),
                     parse_mode=ParseMode.HTML
                 )
             else:

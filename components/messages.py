@@ -12,16 +12,6 @@ class Messages:
         "Max file size: 5MB"
     )
 
-    HELP = (
-        "ℹ️ <b>Quick Help</b>\n\n"
-        "1. Send an image\n"
-        "2. Get compressed version\n\n"
-        "Commands:\n"
-        "/start - Start bot\n"
-        "/stats - View stats\n"
-        "/settings - Bot settings"
-    )
-
     PROCESSING = "⚙️ Compressing..."
     SUCCESS = "✅ Done!"
     RATE_LIMIT = "⚠️ Please wait a moment."

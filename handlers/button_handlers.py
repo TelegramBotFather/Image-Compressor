@@ -148,3 +148,31 @@ class ButtonHandler:
             logger.error(f"Error in API key handler: {str(e)}")
             raise
 
+    async def _handle_api_key_toggle(self, callback_query: CallbackQuery) -> None:
+        """Handle API key toggle button."""
+        try:
+            user_id = callback_query.from_user.id
+            settings = await get_user_settings(user_id)
+            has_api_key = bool(settings.get('custom_api_key'))
+
+            if has_api_key:
+                # Remove API key
+                await update_user_settings(user_id, {'custom_api_key': None})
+                await callback_query.message.edit_text(
+                    "🔑 API key removed successfully!",
+                    reply_markup=Keyboards.settings_menu(False),
+                    parse_mode=ParseMode.HTML
+                )
+            else:
+                # Start API key input process
+                self._waiting_for_api.add(user_id)
+                await callback_query.message.edit_text(
+                    "📝 Please send your TinyPNG API key.\n\n"
+                    "You can get it from: https://tinypng.com/developers",
+                    reply_markup=Keyboards.cancel_button(),
+                    parse_mode=ParseMode.HTML
+                )
+        except Exception as e:
+            logger.error(f"Error in API key toggle handler: {str(e)}")
+            raise
+

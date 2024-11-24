@@ -95,8 +95,7 @@ class Keyboards:
                 InlineKeyboardButton("👥 Users", callback_data="admin_users")
             ],
             [
-                InlineKeyboardButton("📢 Broadcast", callback_data="admin_broadcast"),
-                InlineKeyboardButton("⚙️ Settings", callback_data="admin_settings")
+                InlineKeyboardButton("📢 Broadcast", callback_data="admin_broadcast")
             ],
             [
                 InlineKeyboardButton("🔙 Back to Main Menu", callback_data="start")

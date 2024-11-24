@@ -11,28 +11,28 @@ async def get_user_api_stats(user_id: int) -> Dict[str, Any]:
         today = datetime.utcnow().date()
         
         # Get today's stats
-        today_stats = await db.api_stats.find_one({
+        today_stats = await db.usage_stats.find_one({
             "user_id": user_id,
-            "date": today.isoformat()
-        }) or {"files": 0, "size": 0}
+            "date": today.strftime("%Y-%m-%d")
+        }) or {"compressions": 0, "size_saved": 0}
         
         # Get total stats
-        pipeline = [
-            {"$match": {"user_id": user_id}},
-            {"$group": {
-                "_id": None,
-                "total_files": {"$sum": "$files"},
-                "total_size": {"$sum": "$size"}
-            }}
-        ]
-        total_stats = await db.api_stats.aggregate(pipeline).to_list(1)
-        total_stats = total_stats[0] if total_stats else {"total_files": 0, "total_size": 0}
+        total_stats = await db.users.find_one({"user_id": user_id}) or {
+            "total_compressions": 0,
+            "total_size_saved": 0
+        }
+        
+        # Calculate compression ratio if available
+        today_ratio = 0
+        avg_ratio = 0
         
         return {
-            "today_files": today_stats["files"],
-            "today_size": today_stats["size"],
-            "total_files": total_stats["total_files"],
-            "total_size": total_stats["total_size"]
+            "today_files": today_stats["compressions"],
+            "today_size": today_stats["size_saved"],
+            "total_files": total_stats["total_compressions"],
+            "total_size": total_stats["total_size_saved"],
+            "today_ratio": today_ratio,
+            "avg_ratio": avg_ratio
         }
         
     except Exception as e:
@@ -41,7 +41,9 @@ async def get_user_api_stats(user_id: int) -> Dict[str, Any]:
             "today_files": 0,
             "today_size": 0,
             "total_files": 0,
-            "total_size": 0
+            "total_size": 0,
+            "today_ratio": 0,
+            "avg_ratio": 0
         }
 
 async def save_api_key(user_id: int, api_key: str) -> bool:

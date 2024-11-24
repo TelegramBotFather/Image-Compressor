@@ -59,3 +59,14 @@ def validate_file_name(filename: str) -> bool:
     """
     # Allow only alphanumeric characters, underscores, hyphens, dots, and spaces
     return bool(re.fullmatch(r'^[\w\-. ]+$', filename))
+
+def is_valid_image_url(url: str) -> bool:
+    """
+    Check if URL is a valid image URL.
+    """
+    # Remove any query parameters
+    clean_url = url.split('?')[0]
+    
+    # Check if URL ends with supported image extensions
+    valid_extensions = ('.jpg', '.jpeg', '.png', '.webp')
+    return any(clean_url.lower().endswith(ext) for ext in valid_extensions)

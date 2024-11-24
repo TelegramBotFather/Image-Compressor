@@ -62,9 +62,20 @@ class FileHandler:
                 return
 
             # Send compressed image
+            original_size = os.path.getsize(temp_path)
+            compressed_size = os.path.getsize(compressed_path)
+            space_saved = original_size - compressed_size
+
+            caption = (
+                "✅ Image compressed successfully!\n\n"
+                f"Original Size: {format_size(original_size)}\n"
+                f"Compressed Size: {format_size(compressed_size)}\n"
+                f"Space Saved: {format_size(space_saved)}"
+            )
+
             await message.reply_document(
                 document=compressed_path,
-                caption="✅ Image compressed successfully!",
+                caption=caption,
                 force_document=True
             )
 

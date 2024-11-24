@@ -109,3 +109,12 @@ async def download_image(url: str, output_path: str) -> tuple[bool, str]:
     except Exception as e:
         logger.error(f"Error downloading image: {str(e)}")
         return False, str(e)
+
+def is_valid_image_file(file_path: str) -> bool:
+    """Check if file is a valid image."""
+    try:
+        with Image.open(file_path) as img:
+            img.verify()
+        return True
+    except Exception:
+        return False

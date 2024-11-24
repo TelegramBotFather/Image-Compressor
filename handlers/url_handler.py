@@ -13,6 +13,7 @@ import logging
 import os
 import validators
 from database.mongodb import db
+from utils.helpers import is_valid_image_file
 
 logger = logging.getLogger(__name__)
 
@@ -38,13 +39,22 @@ class URLHandler:
                 await message.reply_text(ERROR_MESSAGES["invalid_url"])
                 return
 
+            if not is_valid_image_url(url):
+                await message.reply_text("⚠️ URL must point to a direct image file (jpg, jpeg, png, webp)")
+                return
+
             # Download image
             status_msg = await message.reply_text("⏳ Downloading image...")
             temp_path = f"temp/{message.from_user.id}_{message.id}"
             success, error = await download_image(url, temp_path)
             
             if not success:
-                await status_msg.edit_text(f"❌ Download failed: {error}")
+                await status_msg.edit_text(f"❌ Download failed: Invalid image URL or unsupported format")
+                return
+
+            # Verify if downloaded file is actually an image
+            if not is_valid_image_file(temp_path):
+                await status_msg.edit_text("❌ The URL does not point to a valid image file")
                 return
 
             await status_msg.edit_text("🔄 Processing image...")
@@ -64,10 +74,22 @@ class URLHandler:
                 return
 
             # Send compressed image
+            original_size = os.path.getsize(temp_path)
+            compressed_size = os.path.getsize(compressed_path)
+            space_saved = original_size - compressed_size
+
+            caption = (
+                "✅ Image compressed successfully!\n\n"
+                f"Original Size: {format_size(original_size)}\n"
+                f"Compressed Size: {format_size(compressed_size)}\n"
+                f"Space Saved: {format_size(space_saved)}\n\n"
+                f"Original URL: {url}"
+            )
+
             await self.client.send_document(
                 message.chat.id,
                 compressed_path,
-                caption=f"✅ Image compressed successfully!\nOriginal URL: {url}",
+                caption=caption,
                 force_document=True
             )
 

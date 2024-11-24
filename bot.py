@@ -17,7 +17,6 @@ from commands import (
     ban_user,
     unban_user,
     banned_users_list,
-    settings_command,
     support_command
 )
 from config import (
@@ -71,8 +70,6 @@ async def start_bot():
         
         # Register handlers
         app.add_handler(MessageHandler(start_command, filters.command("start")))
-        app.add_handler(MessageHandler(support_command, filters.command("help")))
-        app.add_handler(MessageHandler(settings_command, filters.command("settings")))
         app.add_handler(MessageHandler(broadcast_command, filters.command("broadcast")))
         app.add_handler(MessageHandler(ban_user, filters.command("ban")))
         app.add_handler(MessageHandler(unban_user, filters.command("unban")))

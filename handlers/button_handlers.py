@@ -9,6 +9,7 @@ from database.user_db import get_user_settings, update_user_settings
 from api_management.api_handler import APIHandler
 from commands.support import support_command
 from api_management import APISettings
+from database.api_db import get_user_api_stats
 import logging
 
 logger = logging.getLogger(__name__)
@@ -26,8 +27,6 @@ class ButtonHandler:
             # Map callback data to handler methods
             handlers = {
                 "stats": self._handle_stats,
-                "settings": self._handle_settings,
-                "help": self._handle_help,
                 "start": self._handle_start,
                 "settings_api": self._handle_api_key,
                 "api_key_toggle": self._handle_api_key_toggle,
@@ -96,23 +95,42 @@ class ButtonHandler:
         """Handle start button (return to main menu)."""
         try:
             await callback_query.message.edit_text(
-                Messages.WELCOME,
-                reply_markup=Keyboards.main_menu(),
+                dashboard_text,
+                reply_markup=Keyboards.admin_menu(),
                 parse_mode=ParseMode.HTML
             )
         except Exception as e:
             logger.error(f"Error in start handler: {str(e)}")
             raise
 
-    async def _handle_support(self, callback_query: CallbackQuery) -> None:
-        """Handle support button."""
+    async def _handle_admin_api_settings(self, callback_query: CallbackQuery) -> None:
+        """Handle admin API settings button."""
         try:
+            support_text = (
+                "🎯 <b>Need Help?</b>\n\n"
+                "Choose from the options below:\n\n"
+                "📱 <b>Quick Support</b>\n"
+                "• Use buttons below to get help\n"
+                "• Contact support team directly\n\n"
+                "⚡️ <b>Response Time</b>\n"
+                "• Usually within 24 hours\n"
+                "• Priority support for API users"
+            )
+            
+            keyboard = InlineKeyboardMarkup([
+                [
+                    InlineKeyboardButton("📞 Support Group", url="https://t.me/supportgroup"),
+                    InlineKeyboardButton("📢 Update Channel", url="https://t.me/Matiz_Tech")
+                ],
+                [
+                    InlineKeyboardButton("👨‍💻 Developer", url="https://t.me/MatinBhai")
+                ],
+                [InlineKeyboardButton("🏠 Back to Menu", callback_data="start")]
+            ])
+            
             await callback_query.message.edit_text(
-                "📞 <b>Support</b>\n\n"
-                "If you need help or want to report an issue, "
-                "please contact our support team:\n"
-                "@YourSupportUsername",
-                reply_markup=Keyboards.main_menu(),
+                support_text,
+                reply_markup=keyboard,
                 parse_mode=ParseMode.HTML
             )
         except Exception as e:

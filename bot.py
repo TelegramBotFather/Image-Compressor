@@ -79,7 +79,14 @@ async def start_bot():
         app.add_handler(MessageHandler(file_handler.handle, filters.photo | filters.document))
         app.add_handler(CallbackQueryHandler(button_handler.handle))
         app.add_handler(MessageHandler(url_handler.handle, filters.regex(r'https?://[^\s]+')))
+        app.add_handler(MessageHandler(support_command, filters.command("support")))
 
+        # Initialize scheduler
+        scheduler = AsyncIOScheduler()
+        scheduler.add_job(cleanup_old_data, 'interval', hours=1)
+        # Add temp files cleanup job
+        scheduler.add_job(clean_temp_files, 'interval', hours=2, args=[["temp"]])
+        
         # Start scheduler
         scheduler.start()
         
@@ -117,12 +124,8 @@ if __name__ == "__main__":
         button_handler = ButtonHandler(app, api_settings)
         url_handler = URLHandler(app)
         
-        # Initialize scheduler
-        scheduler = AsyncIOScheduler()
-        scheduler.add_job(cleanup_old_data, 'interval', hours=1)
-        
-        # Run the bot
-        app.run(start_bot())
+        # Run the bot properly
+        asyncio.run(start_bot())
         
     except Exception as e:
         logger.error(f"Error starting bot: {str(e)}")
